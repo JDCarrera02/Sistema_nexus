@@ -1,0 +1,12 @@
+[26/04/2026] Inicio de sesión como administrador.[26/04/2026] Inicio de sesión como administrador.[06/05/2026] Inicio de sesión como administrador.[06/05/2026] Inicio de sesión como administrador.[06/05/2026] Inicio de sesión como administrador.[06/05/2026] Inicio de sesión como administrador.[06/05/2026] Inicio de sesión como administrador.[06/05/2026] Inicio de sesión como administrador.[07/05/2026] Inicio de sesión como administrador.[07/05/2026] Inicio de sesión como administrador.[07/05/2026] Inicio de sesión como administrador.[07/05/2026] Inicio de sesión como administrador.[07/05/2026] Inicio de sesión como administrador.[07/05/2026] Inicio de sesión como administrador.[07/05/2026] Inicio de sesión como administrador.[07/05/2026] Inicio de sesión como administrador.[07/05/2026] Socio desactivado: -- S-002[07/05/2026] Inicio de sesión como administrador.[07/05/2026] Inicio de sesión como administrador.[07/05/2026] Inicio de sesión como administrador.[07/05/2026] Inicio de sesión como administrador.[07/05/2026] Inicio de sesión como administrador.[07/05/2026] Inicio de sesión como administrador.[07/05/2026] Inicio de sesión como administrador.
+[07/05/2026] Inicio de sesión como socio — DNI: 12345678A
+[07/05/2026] Reserva creada -- DNI: 12345678A Instalacion: 5 Fecha: 2026-05-07
+[07/05/2026] Inicio de sesión como cliente — DNI: 45678901D
+[07/05/2026] Inicio de sesión como administrador.
+[07/05/2026] Inicio de sesión como administrador.
+[07/05/2026] Inicio de sesión como administrador.
+[07/05/2026] Inicio de sesión como administrador.
+[07/05/2026] Membresia actualizada — socio: S-001
+[07/05/2026] Membresia actualizada — socio: S-001
+[07/05/2026] Inicio de sesión como administrador.
+[08/05/2026] Inicio de sesión como administrador.
