@@ -9,6 +9,7 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -826,7 +827,7 @@ public class AdminFrame extends JFrame implements VistaCliente {
                 return;
             }
 
-            TipoMembresia tipo = ((TipoMembresia) cmbMembresia.getSelectedItem());
+            TipoMembresia tipo = (TipoMembresia) cmbMembresia.getSelectedItem();
             String referidoPor = txtReferidoPor.getText().trim();
             if (referidoPor.isEmpty()) referidoPor = null;
 
