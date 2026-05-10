@@ -25,3 +25,6 @@
 [08/05/2026] Inicio de sesión como administrador.
 [08/05/2026] Inicio de sesión como administrador.
 [08/05/2026] Inicio de sesión como administrador.
+[10/05/2026] Inicio de sesión como administrador.
+[10/05/2026] Inicio de sesión como administrador.
+[10/05/2026] Alta de socio - DNI: 56789012E

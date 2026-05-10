@@ -94,7 +94,7 @@ public class SocioDAO implements DAO<Socio> {
 
         // Preparar sql para insercion
         String sql = "INSERT INTO socios (num_socio, dni, fecha_alta, id_membresia, referido_por) " +
-                "VALUES (?, ?, ?, ?, ?, ?)";
+                "VALUES (?, ?, ?, ?, ?)";
         // Crear e inicializar variable de conexion
         Connection conexion = null;
 
@@ -119,13 +119,13 @@ public class SocioDAO implements DAO<Socio> {
                 ps.setString(1, numSocio);
                 ps.setString(2, socio.getDni());
                 ps.setDate(3, Date.valueOf(socio.getFechaAlta()));
-                ps.setInt(5, socio.getIdMembresia());
+                ps.setInt(4, socio.getIdMembresia());
 
                 // referidoPor es opcional
                 if (socio.getReferidoPor() != null) {
-                    ps.setString(6, socio.getReferidoPor());
+                    ps.setString(5, socio.getReferidoPor());
                 } else {
-                    ps.setNull(6, Types.VARCHAR);
+                    ps.setNull(5, Types.VARCHAR);
                 }
 
                 ps.executeUpdate(); // Ejecutar consulta

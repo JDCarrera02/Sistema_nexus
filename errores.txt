@@ -1,1 +1,3 @@
 [07/05/2026] Error al insertar reserva: La instalacion ya tiene una reserva confirmada en ese horario.
+[10/05/2026] Error al dar de alta socio: No value specified for parameter 4
+[10/05/2026] Error al dar de alta socio: No value specified for parameter 4
