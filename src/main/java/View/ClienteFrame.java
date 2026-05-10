@@ -1,12 +1,18 @@
 package View;
 
+import Controller.ClienteController;
+import Model.Cliente;
 import Util.Sesion;
 
 import javax.swing.*;
 import java.awt.*;
 
 public class ClienteFrame extends JFrame implements VistaCliente{
+
+    private final ClienteController clienteController;
+
     public ClienteFrame() {
+        clienteController = new ClienteController(this);
         inicializarComponentes();
     }
 
@@ -20,12 +26,17 @@ public class ClienteFrame extends JFrame implements VistaCliente{
         JPanel panel = new JPanel(new BorderLayout(10, 10));
         panel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
 
+        // Obtener el nombre del cliente (Solo vista)
+        String dniUsuario = Sesion.getInstancia().getDniUsuario();
+        Cliente cliente = clienteController.buscarPorDni(dniUsuario);
+
+        String nombreUsuario = cliente.getNombre();
+
         // Panel superior
         JPanel panelSuperior = new JPanel(new BorderLayout());
-        JLabel lblBienvenida = new JLabel(
-                "Bienvenido, " + Sesion.getInstancia().getDniUsuario(),
-                SwingConstants.LEFT
-        );
+
+        JLabel lblBienvenida = new JLabel("Bienvenido/a, " + (nombreUsuario != null ? nombreUsuario:dniUsuario), SwingConstants.LEFT);
+
         lblBienvenida.setFont(new Font("Arial", Font.BOLD, 13));
         JButton btnCerrarSesion = new JButton("Cerrar sesión");
         btnCerrarSesion.addActionListener(e -> cerrarSesion());

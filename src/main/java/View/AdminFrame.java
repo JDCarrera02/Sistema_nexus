@@ -9,9 +9,7 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 public class AdminFrame extends JFrame implements VistaCliente {
     // Controllers
