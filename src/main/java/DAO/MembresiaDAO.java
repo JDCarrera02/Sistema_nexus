@@ -236,7 +236,7 @@ public class MembresiaDAO implements DAO<Membresia> {
         // Establecer conexion con la base de datos, y crear PreparedStatement
         try (Connection conexion = DataBaseConnection.getConnection();
              PreparedStatement ps = conexion.prepareStatement(sql)) {
-            // El parametro de entrada es un Enum, se utiliza el metodo name(), para recuperar en String el nombre de la membresia
+            // El parametro de entrada es un Enum, se utiliza el metodo name() para obtener el valor del Enum("ESSENTIAL, VIP, PREMIUM")
             ps.setString(1, tipo.name());
 
             try (ResultSet rs = ps.executeQuery()) {

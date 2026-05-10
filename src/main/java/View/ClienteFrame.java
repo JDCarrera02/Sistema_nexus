@@ -40,18 +40,12 @@ public class ClienteFrame extends JFrame implements VistaCliente{
         );
         lblTitulo.setFont(new Font("Arial", Font.BOLD, 16));
 
-        JLabel lblInfo1 = new JLabel(
-                "Como cliente puedes consultar información del club.",
-                SwingConstants.CENTER
-        );
-        JLabel lblInfo2 = new JLabel(
-                "Para acceder a reservas y más beneficios,",
-                SwingConstants.CENTER
-        );
-        JLabel lblInfo3 = new JLabel(
-                "contacta con el administrador para hacerte socio.",
-                SwingConstants.CENTER
-        );
+        JLabel lblInfo1 = new JLabel("Como cliente puedes consultar información del club.", SwingConstants.CENTER);
+
+        JLabel lblInfo2 = new JLabel("Para acceder a reservas y más beneficios,", SwingConstants.CENTER);
+
+        JLabel lblInfo3 = new JLabel("contacta con el administrador para hacerte socio.", SwingConstants.CENTER);
+
         lblInfo3.setForeground(new Color(0, 100, 0));
         lblInfo3.setFont(new Font("Arial", Font.BOLD, 11));
 

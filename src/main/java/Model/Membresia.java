@@ -23,7 +23,6 @@ public class Membresia {
     private BigDecimal precioMensual;
     private Integer maxReservas;
     private String descripcion;
-
     /**
      * Constructor con todos los parametros (para recibir registros de la base de datos)
      * @param idMembresia el id de la membresia (creado internamente por la base de datos)

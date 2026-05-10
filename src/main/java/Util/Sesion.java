@@ -12,6 +12,9 @@ public class Sesion {
     private Rol rol;
     private Socio socio;
 
+    // Atributo adicional para obtener el nombre del usuario
+    private String nombreUsuario;
+
     // Constructor privado para que esta clase no pueda instanciarse, es una clase estatica
     private Sesion(){}
 
@@ -66,8 +69,11 @@ public class Sesion {
         return socio;
     }
 
-    // Para comprobar roles
+    public String obtenerNombre(){
+        return nombreUsuario;
+    }
 
+    // Para comprobar roles
     public boolean esAdmin(){
         return rol == Rol.ADMIN;
     }

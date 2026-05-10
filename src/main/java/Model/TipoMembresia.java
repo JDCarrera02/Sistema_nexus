@@ -17,4 +17,11 @@ public enum TipoMembresia {
     public String getNombreMembresia(){
         return nombreMembresia;
     }
+
+    // Para el JComboBox
+
+    @Override
+    public String toString() {
+        return nombreMembresia;
+    }
 }
