@@ -41,3 +41,14 @@
 [10/05/2026] Inicio de sesión como cliente — DNI: 45678901D
 [10/05/2026] Inicio de sesión como cliente — DNI: 45678901D
 [10/05/2026] Inicio de sesión como cliente — DNI: 45678901D
+[10/05/2026] Inicio de sesión como socio — DNI: 12345678A
+[10/05/2026] Reserva creada -- DNI: 12345678A Instalacion: 4 Fecha: 2026-05-10
+[10/05/2026] Inicio de sesión como socio — DNI: 12345678A
+[10/05/2026] Inicio de sesión como socio — DNI: 12345678A
+[10/05/2026] Inicio de sesión como administrador.
+[10/05/2026] Inicio de sesión como socio — DNI: 12345678A
+[10/05/2026] Inicio de sesión como socio — DNI: 12345678A
+[10/05/2026] Inicio de sesión como socio — DNI: 12345678A
+[10/05/2026] Estado de reserva actualizado -- id: 1 nuevo estado: Cancelada
+[10/05/2026] Inicio de sesión como socio — DNI: 12345678A
+[10/05/2026] Inicio de sesión como socio — DNI: 12345678A

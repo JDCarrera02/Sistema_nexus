@@ -1237,8 +1237,11 @@ public class AdminFrame extends JFrame implements VistaCliente {
                 return;
             }
             Integer id = (Integer) modeloReservas.getValueAt(fila, 0);
-            reservaController.actualizarEstado(id, EstadoReserva.CANCELADA);
-            cargarReservas();
+            boolean exito = reservaController.actualizarEstado(id, EstadoReserva.CANCELADA);
+
+            if (exito){
+                cargarReservas();
+            }
         });
 
         btnCompletarReserva.addActionListener(e -> {

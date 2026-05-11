@@ -2,6 +2,8 @@ package DAO;
 
 import Model.EstadoReserva;
 import Model.Reserva;
+import Model.ReservaDetalle;
+import Model.TipoInstalacion;
 import Util.DataBaseConnection;
 
 import java.math.BigDecimal;
@@ -23,7 +25,7 @@ import java.util.List;
  * hora_fin = de tipo TIME, indica la hora de finalizacion de una reserva
  * precio = cantidad DECIMAL, calculada por el sistema, indica el precio de una reserva
  * estado = de tipo ENUM con los siguientes valores: ('CONFIRMADA', 'CANCELADA', 'COMPLETADA', indica los estados en los que puede estar una reserva
- * */
+ */
 public class ReservaDAO implements DAO<Reserva> {
 
     /*
@@ -208,10 +210,11 @@ public class ReservaDAO implements DAO<Reserva> {
     /**
      * Metodo que actualiza el estado de una reserva, ya que por integridad de datos, una reserva solo puede cambiar su estado, mas no los demás datos
      * Se trata de una entidad "historial" que guarda el historico de reservas realizadas por los clientes o socios en el sistema
-     * @param idReserva el id de la reserva a actualizar
+     *
+     * @param idReserva   el id de la reserva a actualizar
      * @param nuevoEstado el nuevo estado de la reserva "CANCELADA" O "CONFIRMADA"
      * @throws SQLException si hay algun error con la base de datos
-     * */
+     */
     public void actualizarEstado(Integer idReserva, EstadoReserva nuevoEstado) throws SQLException {
 
         String sql = "UPDATE reservas SET estado = ? WHERE id_reserva = ?";
@@ -403,6 +406,107 @@ public class ReservaDAO implements DAO<Reserva> {
         }
 
         return reservas;
+    }
+
+    /**
+     * Metodo que devuelve las reservas de un cliente junto con las instalaciones reservadas, mediante JOIN
+     *
+     * @param dniCliente el dni del cliente(socio)
+     * @return La lista con los detalles encontrados
+     * @throws SQLException si hay algun error con la base de datos
+     */
+    public List<ReservaDetalle> listarDetallesPorCliente(String dniCliente) throws SQLException {
+        // Preparar SQL para consulta
+        String sql = "SELECT r.id_reserva, i.nombre_instalacion, i.tipo_instalacion, r.fecha_reserva, " +
+                "r.hora_inicio, r.hora_fin, r.precio, r.estado FROM reservas r " +
+                "JOIN instalaciones i ON r.id_instalacion = i.id_instalacion " +
+                "WHERE r.dni_cliente = ? " +
+                "ORDER BY r.fecha_reserva DESC, r.hora_inicio";
+
+        // Preparar lista de retorno
+        List<ReservaDetalle> detalles = new ArrayList<>();
+
+        // Establecer conexion y Crear PreparedStatement
+        try (Connection conexion = DataBaseConnection.getConnection();
+             PreparedStatement ps = conexion.prepareStatement(sql)
+        ) {
+            // Configurar prepareStatement
+            ps.setString(1, dniCliente);
+
+            // Crear ResultSet y ejecutar consulta
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    detalles.add(construirReservaDetalle(rs));
+                }
+            }
+        }
+
+        return detalles;
+    }
+
+    /**
+     * Metodo para buscar reservas a partir del criterio de busqueda del cliente, se filtraran resultados a partir del nombre de una instalacion
+     * @param dniCliente el dni del cliente Socio correspondiente
+     * @param termino el nombre de la instalacion
+     * @throws SQLException si hay algun error con la base de datos
+     * */
+    public List<ReservaDetalle> buscarDetallesPorInstalacion(String dniCliente, String termino)throws SQLException{
+        // Preparar SQL para consulta
+        String sql =
+                "SELECT r.id_reserva, i.nombre_instalacion, " +
+                        "i.tipo_instalacion, r.fecha_reserva, " +
+                        "r.hora_inicio, r.hora_fin, r.precio, r.estado " +
+                        "FROM reservas r " +
+                        "JOIN instalaciones i ON r.id_instalacion = i.id_instalacion " +
+                        "WHERE r.dni_cliente = ? " +
+                        "AND i.nombre_instalacion LIKE ? " +
+                        "ORDER BY r.fecha_reserva DESC, r.hora_inicio";
+        // Preparar lista de retorno
+        List<ReservaDetalle>detalles = new ArrayList<>();
+
+        // Configurar Like de la consulta
+        String like = "%"+termino+"%";
+
+        // Establecer conexion y crear PreparedStatement
+        try (Connection conexion = DataBaseConnection.getConnection();
+             PreparedStatement ps = conexion.prepareStatement(sql)
+        ){
+            // Configurar prepareStatement
+            ps.setString(1, dniCliente);
+            ps.setString(2, like);
+
+            // Crear resultSet y ejecutar consulta
+            try (ResultSet rs = ps.executeQuery()){
+                while (rs.next()){
+                    detalles.add(construirReservaDetalle(rs));
+                }
+            }
+        }
+
+        return detalles;
+    }
+
+    /**
+     * Metodo privado para construir un objeto ReservaDetalle a partir de un ResultSet de la base de datos
+     *
+     * @param rs el ResultSet
+     * @return El objeto ReservaDetalle a partir de los resultados encontrados
+     * @throws SQLException si hay algun error con la base de datos
+     */
+    private ReservaDetalle construirReservaDetalle(ResultSet rs) throws SQLException {
+        TipoInstalacion tipo = TipoInstalacion.valueOf(rs.getString("tipo_instalacion"));
+        EstadoReserva estado = EstadoReserva.valueOf(rs.getString("estado"));
+
+        return new ReservaDetalle(
+                rs.getInt("id_reserva"),
+                rs.getString("nombre_instalacion"),
+                tipo.getNombreInstalacion(),
+                rs.getDate("fecha_reserva").toLocalDate(),
+                rs.getTime("hora_inicio").toLocalTime(),
+                rs.getTime("hora_fin").toLocalTime(),
+                rs.getBigDecimal("precio"),
+                estado.getNombreVisible()
+        );
     }
 
     /**

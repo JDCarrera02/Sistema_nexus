@@ -3,10 +3,7 @@ package Controller;
 import DAO.MembresiaDAO;
 import DAO.ReservaDAO;
 import DAO.SocioDAO;
-import Model.EstadoReserva;
-import Model.Membresia;
-import Model.Reserva;
-import Model.Socio;
+import Model.*;
 import Util.Login;
 import Util.Validator;
 import View.VistaCliente;
@@ -240,6 +237,59 @@ public class ReservaController {
         }
 
         return true; // Si el parametro de entrada es valido, se puede reservar
+    }
+
+    /**
+     * Metodo controlador para listar los detalles de las reservas filtradas por cliente
+     * Llama al metodo del dao listarDetallesPorCliente() y retorna una lista
+     * @param dniCliente el dni del cliente socio
+     * @return la lista con los detalles filtrados por el socio correspondiente
+     * */
+    public List<ReservaDetalle> listarDetallesPorCliente(String dniCliente){
+        // Validar entrada
+        try {
+            Validator.validarDni(dniCliente);
+        } catch (IllegalArgumentException e){
+            vista.mostrarError(e.getMessage());
+            return null;
+        }
+
+        try {
+
+            return reservaDAO.listarDetallesPorCliente(dniCliente);
+
+        } catch (SQLException e) {
+            Login.error("Error al listar detalles de reservas: "+e.getMessage());
+            vista.mostrarError(gestionarErrorSQL(e));
+            return null;
+        }
+
+    }
+
+    /**
+     * Metodo que filtra las reservas por criterio de busqueda (nombre instalacion)
+     * @param dniCliente el dni del socio en ese momento
+     * @param termino el nombre de la instalacion
+     * */
+    public List<ReservaDetalle> buscarDetallesPorInstalacion(String dniCliente, String termino){
+
+        if (termino == null || termino.isBlank()){ // Si el termino es null o no se especifica
+            return listarDetallesPorCliente(dniCliente); // No se filtra
+        }
+
+        try {
+            List<ReservaDetalle> detalles = reservaDAO.buscarDetallesPorInstalacion(dniCliente, termino);
+
+            if (detalles.isEmpty()) {
+                vista.mostrarMensaje("No se encontraron reservas con ese nombre de instalacion: "+termino);
+            }
+
+            return detalles;
+        } catch (SQLException e){
+            Login.error("Error al buscar reservas por instalacion: "+e.getMessage());
+            vista.mostrarError(gestionarErrorSQL(e));
+            return null;
+        }
     }
 
     /**

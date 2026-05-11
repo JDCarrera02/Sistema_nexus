@@ -1,5 +1,6 @@
 package View;
 
+import Controller.ClienteController;
 import Controller.InstalacionController;
 import Controller.ReservaController;
 import Model.*;
@@ -16,12 +17,14 @@ import java.util.List;
 public class SocioFrame extends JFrame implements VistaCliente{
     private ReservaController reservaController;
     private InstalacionController instalacionController;
+    private ClienteController clienteController;
+    private List<ReservaDetalle>reservasCargadas;
 
     // Pestañas
     private JTabbedPane tabbedPane;
 
     // =========================================================
-    // PESTAÑA MIS RESERVAS
+    // Pestaña, reservas del socio
     // =========================================================
     private JTable tablaReservas;
     private DefaultTableModel modeloReservas;
@@ -29,7 +32,7 @@ public class SocioFrame extends JFrame implements VistaCliente{
     private JButton btnRefrescarReservas;
 
     // =========================================================
-    // PESTAÑA NUEVA RESERVA
+    // Pestaña para reservar
     // =========================================================
     private JComboBox<TipoInstalacion> cmbTipoInstalacion;
     private JComboBox<String> cmbInstalacion;
@@ -43,6 +46,7 @@ public class SocioFrame extends JFrame implements VistaCliente{
     public SocioFrame() {
         reservaController     = new ReservaController(this);
         instalacionController = new InstalacionController(this);
+        clienteController = new ClienteController(this);
         inicializarComponentes();
         cargarDatosIniciales();
     }
@@ -57,9 +61,17 @@ public class SocioFrame extends JFrame implements VistaCliente{
 
         // Panel superior
         JPanel panelSuperior = new JPanel(new BorderLayout());
-        Socio socio = Sesion.getInstancia().getSocio();
+
+        // Para obtener el nombre del socio
+        Socio socio = Sesion.getInstancia().getSocio(); // Obtener el socio
+
+        Cliente cliente = clienteController.buscarPorDni(socio.getDni()); // Buscar en clientes por el dni para obtener su nombre
+
+        // Guardar nombre en variable para mostrar
+        String nombreSocio = cliente.getNombre();
+
         JLabel lblBienvenida = new JLabel(
-                "  Bienvenido, socio " + socio.getNumSocio(),
+                "  Bienvenido/a, " +nombreSocio,
                 SwingConstants.LEFT
         );
         lblBienvenida.setFont(new Font("Arial", Font.BOLD, 13));
@@ -85,14 +97,14 @@ public class SocioFrame extends JFrame implements VistaCliente{
     }
 
     // =========================================================
-    // PESTAÑA — MIS RESERVAS
+    // Pestaña, reservas del socio
     // =========================================================
 
     private JPanel crearPestanaMisReservas() {
         JPanel panel = new JPanel(new BorderLayout(5, 5));
         panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-        String[] columnas = {"ID", "Instalación", "Fecha",
+        String[] columnas = {"Instalación", "Tipo", "Fecha",
                 "Inicio", "Fin", "Precio", "Estado"};
         modeloReservas = new DefaultTableModel(columnas, 0) {
             @Override public boolean isCellEditable(int r, int c) { return false; }
@@ -100,17 +112,38 @@ public class SocioFrame extends JFrame implements VistaCliente{
         tablaReservas = new JTable(modeloReservas);
         tablaReservas.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
+        // Panel de busqueda por nombre de instalacion
+        JPanel panelBusqueda = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        JTextField txtBuscarInstalacion = new JTextField(12);
+        JButton btnBuscar    = new JButton("Buscar");
+        JButton btnVerTodas  = new JButton("Ver todas");
+        panelBusqueda.add(new JLabel("Buscar por instalación:"));
+        panelBusqueda.add(txtBuscarInstalacion);
+        panelBusqueda.add(btnBuscar);
+        panelBusqueda.add(btnVerTodas);
+
+        // Botones de accion
+        // Botones de acción
         JPanel panelBotones = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        btnRefrescarReservas = new JButton("Refrescar");
-        btnCancelarReserva   = new JButton("Cancelar reserva");
-        panelBotones.add(btnRefrescarReservas);
+        btnCancelarReserva = new JButton("Cancelar reserva");
         panelBotones.add(btnCancelarReserva);
 
+        panel.add(panelBusqueda, BorderLayout.NORTH);
         panel.add(new JScrollPane(tablaReservas), BorderLayout.CENTER);
         panel.add(panelBotones, BorderLayout.SOUTH);
 
-        btnRefrescarReservas.addActionListener(e -> cargarMisReservas());
+        // Eventos
 
+        // Boton buscar
+        btnBuscar.addActionListener(e -> {
+            String termino = txtBuscarInstalacion.getText().trim();
+            String dni     = Sesion.getInstancia().getDniUsuario();
+            cargarReservasConTermino(dni, termino);
+        });
+
+        btnVerTodas.addActionListener(e -> cargarMisReservas());
+
+        // Boton cancelar
         btnCancelarReserva.addActionListener(e -> {
             int fila = tablaReservas.getSelectedRow();
             if (fila == -1) {
@@ -123,12 +156,17 @@ public class SocioFrame extends JFrame implements VistaCliente{
                 mostrarError("Solo puedes cancelar reservas confirmadas.");
                 return;
             }
-            Integer id = (Integer) modeloReservas.getValueAt(fila, 0);
+            int indice = tablaReservas.getSelectedRow();
+
+            if (reservasCargadas == null || indice >= reservasCargadas.size()) return;
+
+            Integer idReserva = reservasCargadas.get(indice).getIdReserva();
+
             int confirmacion = JOptionPane.showConfirmDialog(this,
                     "¿Cancelar esta reserva?",
                     "Confirmar", JOptionPane.YES_NO_OPTION);
             if (confirmacion == JOptionPane.YES_OPTION) {
-                reservaController.actualizarEstado(id, EstadoReserva.CANCELADA);
+                reservaController.actualizarEstado(idReserva, EstadoReserva.CANCELADA);
                 cargarMisReservas();
             }
         });
@@ -136,8 +174,22 @@ public class SocioFrame extends JFrame implements VistaCliente{
         return panel;
     }
 
+    private void cargarReservasConTermino(String dni, String termino){
+        reservasCargadas = reservaController.buscarDetallesPorInstalacion(dni, termino);
+        modeloReservas.setRowCount(0);
+        if (reservasCargadas != null){
+            reservasCargadas.forEach(r -> modeloReservas.addRow(new Object[]{
+                    r.getNombreInstalacion(), r.getTipoInstalacion(),
+                    r.getFechaReserva(), r.getHoraInicio(), r.getHoraFin(),
+                    r.getPrecio() + " €", r.getEstado()
+            }));
+        }
+    }
+
+
+
     // =========================================================
-    // PESTAÑA — NUEVA RESERVA
+    // Pestaña, crear una nueva reserva
     // =========================================================
 
     private JPanel crearPestanaNuevaReserva() {
@@ -226,7 +278,7 @@ public class SocioFrame extends JFrame implements VistaCliente{
     }
 
     // =========================================================
-    // CARGA DE DATOS
+    // Carga de datos
     // =========================================================
 
     private void cargarDatosIniciales() {
@@ -238,15 +290,16 @@ public class SocioFrame extends JFrame implements VistaCliente{
     }
 
     private void cargarMisReservas() {
-        modeloReservas.setRowCount(0);
         String dni = Sesion.getInstancia().getDniUsuario();
-        List<Reserva> reservas = reservaController.listarPorCliente(dni);
-        if (reservas != null)
-            reservas.forEach(r -> modeloReservas.addRow(new Object[]{
-                    r.getIdReserva(), r.getIdInstalacion(),
-                    r.getFechaReserva(), r.getHoraInicio(), r.getHoraFin(),
-                    r.getPrecio(), r.getEstado().getNombreVisible()
+        reservasCargadas = reservaController.listarDetallesPorCliente(dni);
+        modeloReservas.setRowCount(0);
+
+        if (reservasCargadas != null){
+            reservasCargadas.forEach(r -> modeloReservas.addRow(new Object[]{
+                    r.getNombreInstalacion(), r.getTipoInstalacion(), r.getFechaReserva(),
+                    r.getHoraInicio(), r.getHoraFin(), r.getPrecio()+" €", r.getEstado()
             }));
+        }
     }
 
     private void cargarInstalacionesPorTipo(TipoInstalacion tipo) {
@@ -285,7 +338,7 @@ public class SocioFrame extends JFrame implements VistaCliente{
             java.math.BigDecimal precio =
                     instalacion.getPrecioHora().multiply(duracion);
 
-            lblPrecioEstimado.setText(precio.toString() + " €");
+            lblPrecioEstimado.setText(precio + " €");
 
         } catch (DateTimeParseException e) {
             mostrarError("Formato de hora incorrecto. Usa: HH:mm");
