@@ -1,2 +1,3 @@
 [10/05/2026] Error al insertar reserva: La instalacion ya tiene una reserva confirmada en ese horario.
 [10/05/2026] Intento de login fallido — DNI: 12345678A
+[12/05/2026] Error al buscar instalaciones Unknown column 'tipo' in 'field list'

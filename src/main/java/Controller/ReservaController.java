@@ -315,6 +315,55 @@ public class ReservaController {
         return true; // Si puede reservar
     }
 
+    /**
+     * Metodo controlador que llama al metodo del dao listarTodosDetalles(), para listar todos los detalles de las reservas
+     * @return la lista con los resultados encontrados que devuelve el dao
+     * */
+    public List<ReservaDetalle> listarTodosDetalles(){
+        try {
+            // Cargar los detalles de las reservas
+            List<ReservaDetalle> detalles = reservaDAO.listarTodosDetalles();
+
+            if (detalles.isEmpty()){
+                vista.mostrarMensaje("No hay reservas registradas en el sistema. ");
+            }
+
+            return detalles;
+        } catch (SQLException e){
+            Login.error("Error al listar todos los detalles de reservas: "+e.getMessage());
+            vista.mostrarError(gestionarErrorSQL(e));
+            return null;
+        }
+    }
+
+    /**
+     * Metodo controlador que llama al metodo del dao buscarDetallesAdmin(), que lista todas las reservas de acuerdo con un termino de busqueda (nombre de la instalacion o dni del cliente)
+     * @param termino el criterio de busqueda
+     * @return la lista con los resultados encontrados, a partir de lo retornado del dao
+     * */
+    public List<ReservaDetalle> buscarDetallesAdmin(String termino){
+
+        // Valida si el termino ingresado es null o tiene informacion vacia "Solo espacios"
+        if (termino == null || termino.isBlank()){
+            return listarTodosDetalles(); // Se listan todas las reservas con informacion enriquecida
+        }
+
+        try {
+            // Preparar lista de retorno
+            List<ReservaDetalle> detalles = reservaDAO.buscarDetallesAdmin(termino);
+
+            if (detalles.isEmpty()){
+                vista.mostrarMensaje("No se encontraron reservas con ese termino de busqueda: "+termino);
+            }
+
+            return detalles;
+        } catch (SQLException e){
+            Login.error("Error al buscar reservas: "+e.getMessage());
+            vista.mostrarError(gestionarErrorSQL(e));
+            return null;
+        }
+    }
+
     // Metodo para traducir mensajes SQL, legibles para el usuario en la vista
     private String gestionarErrorSQL(SQLException e) {
         return switch (e.getErrorCode()) {

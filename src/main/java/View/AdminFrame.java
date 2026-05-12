@@ -8,6 +8,7 @@ import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.time.format.DateTimeParseException;
 import java.util.List;
 
@@ -69,7 +70,6 @@ public class AdminFrame extends JFrame implements VistaCliente {
     private DefaultTableModel modeloReservas;
     private JButton btnCancelarReserva;
     private JButton btnCompletarReserva;
-    private JButton btnRefrescarReservas;
 
     public AdminFrame() {
         clienteController = new ClienteController(this);
@@ -98,6 +98,11 @@ public class AdminFrame extends JFrame implements VistaCliente {
         tabbedPane.addTab("Membresias", crearPestanaMembresias());
         tabbedPane.addTab("Instalaciones", crearPestanaInstalaciones());
         tabbedPane.addTab("Reservas", crearPestanaReservas());
+
+        // Ocultar IDs
+        ocultarColumna(tablaMembresias, 0); // Se oculta el ID de la membresia
+        ocultarColumna(tablaInstalaciones, 0); // Se oculta el ID de la instalacion
+        ocultarColumna(tablaReservas, 0); // Se oculta el ID de la reserva
 
         // Recarga los datos al cambiar de pestaña
         tabbedPane.addChangeListener(e -> cargarDatosSegunPestana());
@@ -489,16 +494,18 @@ public class AdminFrame extends JFrame implements VistaCliente {
         panelBusqueda.add(btnBuscarSocio);
         panelBusqueda.add(btnRefrescarSocios);
 
-        // Botones
+        // Panel de botones de accion
         JPanel panelBotones = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         JButton btnDetalleSocio = new JButton("Ver detalle");
         JButton btnActivarSocio = new JButton("Activar");
+        JButton btnCrearReserva = new JButton("Crear reserva");
         btnDesactivarSocio = new JButton("Desactivar");
         btnModificarSocio = new JButton("Modificar socio");
         panelBotones.add(btnDetalleSocio);
         panelBotones.add(btnActivarSocio);
         panelBotones.add(btnDesactivarSocio);
         panelBotones.add(btnModificarSocio);
+        panelBotones.add(btnCrearReserva);
 
         panel.add(panelBusqueda, BorderLayout.NORTH);
         panel.add(new JScrollPane(tablaSocios), BorderLayout.CENTER);
@@ -535,8 +542,10 @@ public class AdminFrame extends JFrame implements VistaCliente {
                     "¿Desactivar al socio " + numSocio + "?",
                     "Confirmar", JOptionPane.YES_NO_OPTION);
             if (confirmacion == JOptionPane.YES_OPTION) {
-                socioController.desactivar(numSocio);
-                cargarSocios();
+                boolean exito = socioController.desactivar(numSocio);
+                if (exito) {
+                    cargarSocios();
+                }
             }
         });
 
@@ -585,6 +594,20 @@ public class AdminFrame extends JFrame implements VistaCliente {
                 );
                 mostrarDialogoModificarSocio(detalleCompleto);
             }
+        });
+
+        // Crear reserva para el socio seleccionado
+        btnCrearReserva.addActionListener(e -> {
+            int fila = tablaSocios.getSelectedRow();
+            if (fila == -1){
+                mostrarError("Selecciona un socio de la tabla. ");
+                return;
+            }
+
+            String dni = (String) modeloSocios.getValueAt(fila,1);
+            String nombre = (String) modeloSocios.getValueAt(fila,2);
+            String apellidos = (String) modeloSocios.getValueAt(fila,3);
+            mostrarDialogoCrearReservaAdmin(dni, nombre+" "+apellidos);
         });
 
         return panel;
@@ -848,6 +871,136 @@ public class AdminFrame extends JFrame implements VistaCliente {
         dialogo.setVisible(true);
     }
 
+    // Dialogo para crear una reserva desde admin a partir de la seleccion del socio en la vista
+    private void mostrarDialogoCrearReservaAdmin(String dniSocio, String nombreSocio){
+        JDialog dialogo = new JDialog(this, "Crear reserva", true);
+        dialogo.setSize(420, 380);
+        dialogo.setLocationRelativeTo(this);
+        dialogo.setLayout(new GridBagLayout());
+
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(6, 8, 6, 8);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+
+        // Info del socio seleccionado
+        gbc.gridx = 0; gbc.gridy = 0; gbc.gridwidth = 2;
+        dialogo.add(new JLabel(
+                "<html><b>Socio:</b> " + nombreSocio +
+                        " — <b>DNI:</b> " + dniSocio + "</html>"
+        ), gbc);
+
+        gbc.gridy = 1;
+        dialogo.add(new JSeparator(), gbc);
+
+        gbc.gridwidth = 1;
+
+        // Tipo de instalación
+        gbc.gridx = 0; gbc.gridy = 2;
+        dialogo.add(new JLabel("Tipo de instalación:"), gbc);
+        JComboBox<TipoInstalacion> cmbTipo =
+                new JComboBox<>(TipoInstalacion.values());
+        gbc.gridx = 1;
+        dialogo.add(cmbTipo, gbc);
+
+        // Instalación concreta
+        gbc.gridx = 0; gbc.gridy = 3;
+        dialogo.add(new JLabel("Instalación:"), gbc);
+        JComboBox<String> cmbInstalacion = new JComboBox<>();
+        gbc.gridx = 1;
+        dialogo.add(cmbInstalacion, gbc);
+
+        // Lista auxiliar para acceder al id de la instalación seleccionada
+        List<Instalacion>[] instalacionesRef = new List[]{null};
+
+        // Cargar las instalaciones del tipo seleccionado por defecto, a traves del metodo auxiliar para cargar las instalaciones
+        cargarInstalacionesEnCombo(
+                (TipoInstalacion) cmbTipo.getSelectedItem(),
+                cmbInstalacion, instalacionesRef
+        );
+
+        // Cuando se cambia de tipo de instalacion, se recargan las instalaciones
+        cmbTipo.addActionListener(e -> cargarInstalacionesEnCombo(
+                (TipoInstalacion) cmbTipo.getSelectedItem(),
+                cmbInstalacion, instalacionesRef
+        ));
+
+        // Fecha de la reserva
+        gbc.gridx = 0; gbc.gridy = 4;
+        dialogo.add(new JLabel("Fecha (yyyy-MM-dd):"), gbc);
+        JTextField txtFecha = new JTextField(LocalDate.now().toString(), 15);
+        gbc.gridx = 1;
+        dialogo.add(txtFecha, gbc);
+
+        // Hora inicio
+        gbc.gridx = 0; gbc.gridy = 5;
+        dialogo.add(new JLabel("Hora inicio (HH:mm):"), gbc);
+        JTextField txtHoraInicio = new JTextField("10:00", 15);
+        gbc.gridx = 1;
+        dialogo.add(txtHoraInicio, gbc);
+
+        // Hora fin
+        gbc.gridx = 0; gbc.gridy = 6;
+        dialogo.add(new JLabel("Hora fin (HH:mm):"), gbc);
+        JTextField txtHoraFin = new JTextField("11:00", 15);
+        gbc.gridx = 1;
+        dialogo.add(txtHoraFin, gbc);
+
+        // Botones de accion
+        JPanel panelBotones = new JPanel(new FlowLayout());
+        JButton btnConfirmar = new JButton("Confirmar reserva");
+        JButton btnCancelar  = new JButton("Cancelar");
+        panelBotones.add(btnConfirmar);
+        panelBotones.add(btnCancelar);
+
+        gbc.gridx = 0; gbc.gridy = 7; gbc.gridwidth = 2;
+        dialogo.add(panelBotones, gbc);
+
+        // Eventos de los botones
+
+        // Boton confirmar
+        btnConfirmar.addActionListener(e -> {
+            try {
+                int indice = cmbInstalacion.getSelectedIndex();
+                if (indice == -1 || instalacionesRef[0] == null) {
+                    mostrarError("Selecciona una instalación.");
+                    return;
+                }
+
+                LocalDate fecha  = LocalDate.parse(txtFecha.getText().trim());
+                LocalTime inicio = LocalTime.parse(txtHoraInicio.getText().trim());
+                LocalTime fin    = LocalTime.parse(txtHoraFin.getText().trim());
+                Integer idInstalacion =
+                        instalacionesRef[0].get(indice).getIdInstalacion();
+
+                boolean exito = reservaController.insertar(
+                        dniSocio, idInstalacion, fecha, inicio, fin
+                );
+
+                if (exito) {
+                    dialogo.dispose();
+                    cargarReservas();
+                }
+
+            } catch (DateTimeParseException ex) {
+                mostrarError("Formato de fecha u hora incorrecto.");
+            }
+        });
+
+        // Boton cancelar
+        btnCancelar.addActionListener(e -> dialogo.dispose());
+        dialogo.setVisible(true);
+
+    }
+
+    // Metodo auxiliar para cargar instalaciones de un tipo en un JComboBox
+    private void cargarInstalacionesEnCombo(TipoInstalacion tipo, JComboBox<String> combo, List<Instalacion>[] ref){
+        combo.removeAllItems();
+        List<Instalacion> instalaciones = instalacionController.listarPorTipo(tipo);
+        ref[0] = instalaciones;
+        if (instalaciones != null)
+            instalaciones.forEach(i -> combo.addItem(i.getNombreInstalacion()));
+    }
+
     private void mostrarDetalleSocio(int fila) {
 
         String numSocio = (String) modeloSocios.getValueAt(fila, 0);
@@ -943,6 +1096,14 @@ public class AdminFrame extends JFrame implements VistaCliente {
         btnRefrescarMembresias.addActionListener(e -> cargarMembresias());
 
         return panel;
+    }
+
+    // Ocultar ID de la tabla
+    private void ocultarColumna(JTable tabla, int indiceColumna){
+        tabla.getColumnModel().getColumn(indiceColumna).setMinWidth(0);
+        tabla.getColumnModel().getColumn(indiceColumna).setMaxWidth(0);
+        tabla.getColumnModel().getColumn(indiceColumna).setWidth(0);
+
     }
 
     // =========================================================
@@ -1041,16 +1202,26 @@ public class AdminFrame extends JFrame implements VistaCliente {
         tablaInstalaciones = new JTable(modeloInstalaciones);
         tablaInstalaciones.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
+        // Panel de busqueda
+        JPanel panelBusqueda = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        JTextField txtBuscarInstalacion = new JTextField(12);
+        JButton btnBuscarInstalacion    = new JButton("Buscar");
+        btnRefrescarInstalaciones       = new JButton("Ver todas");
+        panelBusqueda.add(new JLabel("Buscar por nombre:"));
+        panelBusqueda.add(txtBuscarInstalacion);
+        panelBusqueda.add(btnBuscarInstalacion);
+        panelBusqueda.add(btnRefrescarInstalaciones);
+
+        // Panel de los botones
         JPanel panelBotones = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         btnNuevaInstalacion = new JButton("Nueva instalación");
         btnEditarInstalacion = new JButton("Editar");
         btnEliminarInstalacion = new JButton("Eliminar");
-        btnRefrescarInstalaciones = new JButton("Refrescar");
-        panelBotones.add(btnRefrescarInstalaciones);
         panelBotones.add(btnNuevaInstalacion);
         panelBotones.add(btnEditarInstalacion);
         panelBotones.add(btnEliminarInstalacion);
 
+        panel.add(panelBusqueda, BorderLayout.NORTH);
         panel.add(new JScrollPane(tablaInstalaciones), BorderLayout.CENTER);
         panel.add(panelBotones, BorderLayout.SOUTH);
 
@@ -1058,6 +1229,26 @@ public class AdminFrame extends JFrame implements VistaCliente {
                 mostrarDialogoInstalacion(null)
         );
 
+        // Eventos
+
+        // Boton buscar
+        btnBuscarInstalacion.addActionListener(e -> {
+            String termino = txtBuscarInstalacion.getText().trim();
+            List<Instalacion> instalaciones =
+                    instalacionController.buscarPornombre(termino);
+            modeloInstalaciones.setRowCount(0);
+            if (instalaciones != null)
+                instalaciones.forEach(i -> modeloInstalaciones.addRow(new Object[]{
+                        i.getIdInstalacion(), i.getNombreInstalacion(),
+                        i.getTipoInstalacion(), i.getCapacidad(),
+                        i.getPrecioHora(), i.isActiva() ? "Si" : "No"
+                }));
+        });
+
+        // Boton refrescar
+        btnRefrescarInstalaciones.addActionListener(e -> cargarInstalaciones());
+
+        // Boton editar
         btnEditarInstalacion.addActionListener(e -> {
             int fila = tablaInstalaciones.getSelectedRow();
             if (fila == -1) {
@@ -1086,13 +1277,11 @@ public class AdminFrame extends JFrame implements VistaCliente {
             }
         });
 
-        btnRefrescarInstalaciones.addActionListener(e -> cargarInstalaciones());
-
         return panel;
     }
 
     // =========================================================
-    // DIÁLOGO — NUEVA / EDITAR INSTALACIÓN
+    // Dialogo -- editar instalacion
     // =========================================================
 
     private void mostrarDialogoInstalacion(Instalacion instalacion) {
@@ -1203,12 +1392,13 @@ public class AdminFrame extends JFrame implements VistaCliente {
     // =========================================================
     // Pestaña de las reservas
     // =========================================================
+    private List<ReservaDetalle> reservasCargadasAdmin; // Lista para cargar los detalles de las reservas en la pestaña del admin
 
     private JPanel crearPestanaReservas() {
         JPanel panel = new JPanel(new BorderLayout(5, 5));
         panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-        String[] columnas = {"ID", "DNI Cliente", "Instalación",
+        String[] columnas = {"ID", "DNI Cliente", "Instalación", "Tipo",
                 "Fecha", "Inicio", "Fin", "Precio", "Estado"};
         modeloReservas = new DefaultTableModel(columnas, 0) {
             @Override
@@ -1219,43 +1409,82 @@ public class AdminFrame extends JFrame implements VistaCliente {
         tablaReservas = new JTable(modeloReservas);
         tablaReservas.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
+        // Panel de busqueda
+        JPanel panelBusqueda = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        JTextField txtBuscarReserva = new JTextField(12);
+        JButton btnBuscarReserva    = new JButton("Buscar");
+        JButton btnVerTodasReservas = new JButton("Ver todas");
+        panelBusqueda.add(new JLabel("Buscar por DNI o instalación:"));
+        panelBusqueda.add(txtBuscarReserva);
+        panelBusqueda.add(btnBuscarReserva);
+        panelBusqueda.add(btnVerTodasReservas);
+
+        // Panel de botones de accion
         JPanel panelBotones = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         btnCancelarReserva = new JButton("Cancelar reserva");
         btnCompletarReserva = new JButton("Marcar completada");
-        btnRefrescarReservas = new JButton("Refrescar");
-        panelBotones.add(btnRefrescarReservas);
         panelBotones.add(btnCancelarReserva);
         panelBotones.add(btnCompletarReserva);
 
+        panel.add(panelBusqueda, BorderLayout.NORTH);
         panel.add(new JScrollPane(tablaReservas), BorderLayout.CENTER);
         panel.add(panelBotones, BorderLayout.SOUTH);
 
+        // Botones de eventos
+
+        // Boton buscar reserva
+        btnBuscarReserva.addActionListener(e -> {
+            String termino = txtBuscarReserva.getText().trim();
+            cargarReservasAdminConTermino(termino);
+        });
+
+        // Boton ver todas las reservas
+        btnVerTodasReservas.addActionListener(e -> cargarReservas());
+
+        // Boton cancelar reserva
         btnCancelarReserva.addActionListener(e -> {
             int fila = tablaReservas.getSelectedRow();
             if (fila == -1) {
                 mostrarError("Selecciona una reserva de la tabla.");
                 return;
             }
-            Integer id = (Integer) modeloReservas.getValueAt(fila, 0);
-            boolean exito = reservaController.actualizarEstado(id, EstadoReserva.CANCELADA);
+            if (reservasCargadasAdmin == null ||
+                    fila >= reservasCargadasAdmin.size()) return;
 
-            if (exito){
-                cargarReservas();
+            String estado = reservasCargadasAdmin.get(fila).getEstado();
+            if (!estado.equals(EstadoReserva.CONFIRMADA.getNombreVisible())) {
+                mostrarError("Solo se pueden cancelar reservas confirmadas.");
+                return;
+            }
+
+            Integer id = reservasCargadasAdmin.get(fila).getIdReserva();
+            int confirmacion = JOptionPane.showConfirmDialog(this,
+                    "¿Cancelar esta reserva?",
+                    "Confirmar", JOptionPane.YES_NO_OPTION);
+            if (confirmacion == JOptionPane.YES_OPTION) {
+                boolean exito = reservaController.actualizarEstado(
+                        id, EstadoReserva.CANCELADA
+                );
+                if (exito) cargarReservas();
             }
         });
 
+        // Boton completar Reserva
         btnCompletarReserva.addActionListener(e -> {
             int fila = tablaReservas.getSelectedRow();
             if (fila == -1) {
                 mostrarError("Selecciona una reserva de la tabla.");
                 return;
             }
-            Integer id = (Integer) modeloReservas.getValueAt(fila, 0);
-            reservaController.actualizarEstado(id, EstadoReserva.COMPLETADA);
-            cargarReservas();
-        });
+            if (reservasCargadasAdmin == null ||
+                    fila >= reservasCargadasAdmin.size()) return;
 
-        btnRefrescarReservas.addActionListener(e -> cargarReservas());
+            Integer id = reservasCargadasAdmin.get(fila).getIdReserva();
+            boolean exito = reservaController.actualizarEstado(
+                    id, EstadoReserva.COMPLETADA
+            );
+            if (exito) cargarReservas();
+        });
 
         return panel;
     }
@@ -1346,12 +1575,25 @@ public class AdminFrame extends JFrame implements VistaCliente {
 
     private void cargarReservas() {
         modeloReservas.setRowCount(0);
-        List<Reserva> reservas = reservaController.listarTodos();
-        if (reservas != null)
-            reservas.forEach(r -> modeloReservas.addRow(new Object[]{
-                    r.getIdReserva(), r.getDniCliente(), r.getIdInstalacion(),
+        reservasCargadasAdmin = reservaController.listarTodosDetalles();
+        if (reservasCargadasAdmin != null)
+            reservasCargadasAdmin.forEach(r -> modeloReservas.addRow(new Object[]{
+                    r.getIdReserva(), r.getDniCliente(), r.getNombreInstalacion(),
+                    r.getTipoInstalacion(), r.getFechaReserva(), r.getHoraInicio(),
+                    r.getHoraFin(), r.getPrecio()+" €", r.getEstado()
+            }));
+    }
+
+    // Metodo para cargar las reservas con termino de busqueda
+    public void cargarReservasAdminConTermino(String termino){
+        reservasCargadasAdmin = reservaController.buscarDetallesAdmin(termino);
+        modeloReservas.setRowCount(0);
+        if (reservasCargadasAdmin != null)
+            reservasCargadasAdmin.forEach(r -> modeloReservas.addRow(new Object[]{
+                    r.getIdReserva(), r.getDniCliente(),
+                    r.getNombreInstalacion(), r.getTipoInstalacion(),
                     r.getFechaReserva(), r.getHoraInicio(), r.getHoraFin(),
-                    r.getPrecio(), r.getEstado().getNombreVisible()
+                    r.getPrecio() + " €", r.getEstado()
             }));
     }
 

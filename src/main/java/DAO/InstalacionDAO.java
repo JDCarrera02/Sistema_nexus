@@ -255,6 +255,36 @@ public class InstalacionDAO implements DAO<Instalacion>{
     }
 
     /**
+     * Metodo para buscar una instalacion o varias por el nombre
+     * @param termino el criterio de busqueda
+     * @return la lista con los resultados encontrados
+     * @throws SQLException si hay algun error con la base de datos
+     * */
+    public List<Instalacion>buscarPorNombre(String termino) throws SQLException{
+        String sql = "SELECT id_instalacion, nombre_instalacion, tipo_instalacion, capacidad, precio_hora, activa "+
+                "FROM instalaciones WHERE nombre_instalacion LIKE ? "+
+                "ORDER BY nombre_instalacion";
+
+        List<Instalacion> instalaciones = new ArrayList<>();
+        String like = "%"+termino+"%";
+        // Establecer conexion y crear PreparedStatement
+        try (Connection conexion = DataBaseConnection.getConnection();
+             PreparedStatement ps = conexion.prepareStatement(sql);
+        ){
+            // Configurar prepareStatement
+            ps.setString(1, like);
+
+            // Crear ResultSet y ejecutar consultas
+            try (ResultSet rs = ps.executeQuery()){
+                while (rs.next()){
+                    instalaciones.add(construirInstalacion(rs));
+                }
+            }
+        }
+        return instalaciones;
+    }
+
+    /**
      * Metodo privado para construir objeto Intalacion a partir del ResultSet
      * @param rs ResultSet que viene con el registro de la base de datos
      * @return un objeto Instalacion valido

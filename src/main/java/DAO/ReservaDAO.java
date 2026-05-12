@@ -487,6 +487,100 @@ public class ReservaDAO implements DAO<Reserva> {
     }
 
     /**
+     * Metodo para listar todas las reservas con informacion enriquecida, a partir de JOIN con instalaciones y clientes.
+     * @return la lista con la informacion enriquecida
+     * @throws SQLException si hay algun error con la base de datos
+     * */
+    public List<ReservaDetalle>listarTodosDetalles()throws SQLException{
+        // Preparar sql para consulta
+        String sql = "SELECT r.id_reserva, i.nombre_instalacion, i.tipo_instalacion, "+
+                "r.fecha_reserva, r.hora_inicio, r.hora_fin, r.precio, r.estado, r.dni_cliente "+
+                "FROM reservas r "+
+                "JOIN instalaciones i ON r.id_instalacion = i.id_instalacion "+
+                "ORDER BY r.fecha_reserva DESC, r.hora_inicio";
+
+        // Crear lista de retorno
+        List<ReservaDetalle> detalles = new ArrayList<>();
+
+        // Establecer conexion, crear PreparedStatement y ResultSet para ejecutar la consulta
+        try (Connection conexion = DataBaseConnection.getConnection();
+             PreparedStatement ps = conexion.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery();
+        ) {
+            // Llenado de la lista
+            while (rs.next()){
+                detalles.add(construirReservaDetalleAdmin(rs));
+            }
+        }
+
+        return detalles;
+    }
+
+    /**
+     * Metodo para buscar reservas por el dni del cliente o el nombre de la instalacion
+     * @param termino el criterio de busqueda, dni del cliente o el nombre de la instalacion
+     * @return la lista con los resultados encontrados
+     * @throws SQLException si hay algun error con la base de datos
+     * */
+    public List<ReservaDetalle> buscarDetallesAdmin(String termino)throws SQLException{
+        // Preparar sql para consulta
+        String sql = "SELECT r.id_reserva, i.nombre_instalacion, i.tipo_instalacion, r.fecha_reserva, " +
+                "r.hora_inicio, r.hora_fin, r.precio, r.estado, " +
+                "r.dni_cliente " +
+                "FROM reservas r " +
+                "JOIN instalaciones i ON r.id_instalacion = i.id_instalacion " +
+                "WHERE r.dni_cliente LIKE ? " +
+                "OR i.nombre_instalacion LIKE ? " +
+                "ORDER BY r.fecha_reserva DESC, r.hora_inicio";
+        // Crear lista de retorno
+        List<ReservaDetalle> detalles = new ArrayList<>();
+
+        // Configurar Like de la consulta
+        String like = "%"+termino+"%";
+
+        // Establecer conexion y crear PreparedStatement
+        try (Connection conexion = DataBaseConnection.getConnection();
+             PreparedStatement ps = conexion.prepareStatement(sql)
+        ){
+            // Configurar prepareStatement
+            ps.setString(1,like);
+            ps.setString(2, like);
+
+            // Crear ResultSet y ejecutar consulta configurada
+            try (ResultSet rs = ps.executeQuery()){
+                while (rs.next()){
+                    detalles.add(construirReservaDetalleAdmin(rs));
+                }
+            }
+        }
+
+        return detalles;
+    }
+
+    /**
+     * Metodo privado para construir objeto DetalleReserva pero con los detalles para la vista del admin
+     * @param rs El resultSet con las reservas con el JOIN(multitabla) de datos
+     * @return El objeto DetalleReserva o null si no encuentra nada
+     * @throws SQLException si hay algun error con la base de datos
+     * */
+    private ReservaDetalle construirReservaDetalleAdmin(ResultSet rs) throws SQLException{
+        TipoInstalacion tipo = TipoInstalacion.valueOf(rs.getString("tipo_instalacion"));
+        EstadoReserva estado = EstadoReserva.valueOf(rs.getString("estado"));
+
+        return new ReservaDetalle(
+                rs.getInt("id_reserva"),
+                rs.getString("nombre_instalacion"),
+                tipo.getNombreInstalacion(),
+                rs.getDate("fecha_reserva").toLocalDate(),
+                rs.getTime("hora_inicio").toLocalTime(),
+                rs.getTime("hora_fin").toLocalTime(),
+                rs.getBigDecimal("precio"),
+                estado.getNombreVisible(),
+                rs.getString("dni_cliente")  // Campo extra para el administrador
+        );
+    }
+
+    /**
      * Metodo privado para construir un objeto ReservaDetalle a partir de un ResultSet de la base de datos
      *
      * @param rs el ResultSet

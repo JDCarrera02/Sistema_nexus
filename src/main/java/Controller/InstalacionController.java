@@ -3,6 +3,7 @@ package Controller;
 import DAO.InstalacionDAO;
 import Model.Instalacion;
 import Model.TipoInstalacion;
+import Util.Login;
 import View.VistaCliente;
 
 import java.math.BigDecimal;
@@ -252,6 +253,31 @@ public class InstalacionController {
             // Llamar al metodo y retornar una lista
             return instalacionDAO.listarPorTipo(tipo);
         } catch (SQLException e) {
+            vista.mostrarError(gestionarErrorSQL(e));
+            return null;
+        }
+    }
+
+    /**
+     * Metodo controlador que llama al metodo del dao, buscarPorNombre(), que retorna una lista de instalaciones filtradas por el nombre
+     * @param termino el criterio de busqueda
+     * @return La lista con los resultados encontrados, o null si no encuentra nada o si hay algun error con la base de datos
+     * */
+    public List<Instalacion> buscarPornombre(String termino){
+        if (termino == null || termino.isBlank()) {
+            return listarTodos();
+        }
+
+        try {
+            List<Instalacion>instalaciones = instalacionDAO.buscarPorNombre(termino);
+
+            if (instalaciones.isEmpty()){
+                vista.mostrarMensaje("No se encontraron instalaciones con ese termino de busqueda: "+termino);
+            }
+
+            return instalaciones;
+        } catch (SQLException e){
+            Login.error("Error al buscar instalaciones "+e.getMessage());
             vista.mostrarError(gestionarErrorSQL(e));
             return null;
         }
