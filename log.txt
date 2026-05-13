@@ -69,3 +69,16 @@
 [12/05/2026] Inicio de sesión como administrador.
 [12/05/2026] Inicio de sesión como administrador.
 [12/05/2026] Reserva creada -- DNI: 34567890C Instalacion: 2 Fecha: 2026-05-12
+[13/05/2026] Inicio de sesión como administrador.
+[13/05/2026] Cliente registrado -- DNI: 34567890F
+[13/05/2026] Inicio de sesión como cliente — DNI: 45678901D
+[13/05/2026] Inicio de sesión como administrador.
+[13/05/2026] Alta de socio - DNI: 45678901D
+[13/05/2026] Inicio de sesión como socio — DNI: 45678901D
+[13/05/2026] Reserva creada -- DNI: 45678901D Instalacion: 5 Fecha: 2026-05-13
+[13/05/2026] Reserva creada -- DNI: 45678901D Instalacion: 5 Fecha: 2026-05-13
+[13/05/2026] Inicio de sesión como administrador.
+[13/05/2026] Reserva creada -- DNI: 23456789B Instalacion: 7 Fecha: 2026-05-13
+[13/05/2026] Inicio de sesión como socio — DNI: 45678901D
+[13/05/2026] Inicio de sesión como socio — DNI: 45678901D
+[13/05/2026] Inicio de sesión como socio — DNI: 45678901D

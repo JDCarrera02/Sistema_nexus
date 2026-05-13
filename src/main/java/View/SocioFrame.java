@@ -52,8 +52,7 @@ public class SocioFrame extends JFrame implements VistaCliente{
     }
 
     private void inicializarComponentes() {
-        setTitle("Club Social Nexus — Socio: " +
-                Sesion.getInstancia().getDniUsuario());
+        setTitle("DashBoard — Socio");
         setSize(750, 520);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
@@ -117,7 +116,7 @@ public class SocioFrame extends JFrame implements VistaCliente{
         JTextField txtBuscarInstalacion = new JTextField(12);
         JButton btnBuscar    = new JButton("Buscar");
         JButton btnVerTodas  = new JButton("Ver todas");
-        panelBusqueda.add(new JLabel("Buscar por instalación:"));
+        panelBusqueda.add(new JLabel("Buscar por instalación (nombre):"));
         panelBusqueda.add(txtBuscarInstalacion);
         panelBusqueda.add(btnBuscar);
         panelBusqueda.add(btnVerTodas);

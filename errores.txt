@@ -1,3 +1,6 @@
 [10/05/2026] Error al insertar reserva: La instalacion ya tiene una reserva confirmada en ese horario.
 [10/05/2026] Intento de login fallido — DNI: 12345678A
 [12/05/2026] Error al buscar instalaciones Unknown column 'tipo' in 'field list'
+[13/05/2026] Error al insertar cliente: Duplicate entry '34567890C' for key 'clientes.PRIMARY'
+[13/05/2026] Error al insertar reserva: La instalacion ya tiene una reserva confirmada en ese horario.
+[13/05/2026] Intento de login fallido — DNI: 4567890D
