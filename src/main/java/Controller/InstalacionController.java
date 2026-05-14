@@ -44,6 +44,8 @@ public class InstalacionController {
         // Validacion de entradas
         try {
 
+            Validator.validarNombreInstalacion(nombre);
+
             if (tipo == null) {
                 throw new IllegalArgumentException("El tipo de instalación no puede estar vacío");
             }
