@@ -4,6 +4,7 @@ import DAO.InstalacionDAO;
 import Model.Instalacion;
 import Model.TipoInstalacion;
 import Util.Login;
+import Util.Validator;
 import View.VistaCliente;
 
 import java.math.BigDecimal;
@@ -47,13 +48,8 @@ public class InstalacionController {
                 throw new IllegalArgumentException("El tipo de instalación no puede estar vacío");
             }
 
-            if (capacidad == null || capacidad <= 0) {
-                throw new IllegalArgumentException("La capacidad debe ser un número mayor que cero");
-            }
-
-            if (precioHora == null || precioHora.compareTo(BigDecimal.ZERO) <= 0) {
-                throw new IllegalArgumentException("El precio por hora debe ser mayor que cero");
-            }
+            Validator.validarCapacidad(capacidad);
+            Validator.validarPrecio(precioHora, "Precio por hora");
 
         } catch (IllegalArgumentException e) {
             vista.mostrarError(e.getMessage());

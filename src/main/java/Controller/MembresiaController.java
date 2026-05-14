@@ -4,6 +4,7 @@ import DAO.MembresiaDAO;
 import Model.Membresia;
 import Model.TipoMembresia;
 import Util.Login;
+import Util.Validator;
 import View.VistaCliente;
 
 import java.math.BigDecimal;
@@ -63,9 +64,7 @@ public class MembresiaController {
                 throw new IllegalArgumentException("El precio debe ser un numero valido. Ejemplo: 29.99");
             }
 
-            if (precio.compareTo(BigDecimal.ZERO) <= 0) {
-                throw new IllegalArgumentException("El precio debe ser mayor que cero");
-            }
+            Validator.validarPrecio(precio, "Precio mensual");
 
             // Conversion del parametro maxReservas
             try {
@@ -74,9 +73,9 @@ public class MembresiaController {
                 throw new IllegalArgumentException("El maximo de reservas debe ser un numero entero ");
             }
 
-            if (maxReservas < 0) {
-                throw new IllegalArgumentException("El maximo de reservas no puede ser negativo");
-            }
+            Validator.validarMaxReservas(maxReservas);
+            Validator.validarDescripcion(descripcion);
+
         } catch (IllegalArgumentException e) {
             vista.mostrarError(e.getMessage());
             return false; // No se puede modificar una membresia si hay errores en los parametros de entrada
