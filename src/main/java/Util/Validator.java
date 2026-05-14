@@ -1,18 +1,12 @@
 package Util;
 
-import Model.EstadoReserva;
-import Model.TipoInstalacion;
-import Model.TipoMembresia;
-
 import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.time.LocalTime;
 
 /**
  * Clase Validator
  *
  * @author Juan Diego Carrera
- * @version 1.0
+ * @version 1.2
  * <p>
  * En esta clase se tendrán los métodos que realizarán validaciones como Regex o patrones de diseño
  * que deben cumplir algunos de los atributos antes de hacer inserciones, modificaciones
@@ -24,12 +18,36 @@ public class Validator {
     private static final String REGEX_NOMBRE_COMPLETO = "\\p{Lu}\\p{Ll}+(\\s\\p{Lu}\\p{Ll}+)*";
     private static final String REGEX_TELEFONO = "\\d{3}-?\\d{3}-?\\d{3}";
 
+    // Constantes para definir longitudes maximas de los datos, y evitar desbordamiento cuando el usuario manipule registros
+    public static final int MAX_NOMBRE = 100; // El maximo de caracteres, siguiendo el modelo relacional, para el nombre son 100 caracteres (VARCHAR(100))
+    public static final int MAX_APELLIDOS = 150; // El maximo de caracteres definido en el modelo relacional, para apellidos son 150
+    public static final int MAX_EMAIL = 150; // El maximo de caracteres para el email son 150
+    public static final int MAX_TELEFONO = 15; // El maximo de caracteres para el telefono es de 15
+    public static final int MAX_NOMBRE_INST = 100; // El maximo de caracteres para el nombre de una instalacion es de 100
+    public static final int MAX_DESCRIPCION = 500; // Este atributo se encuentra en Membresias, al ser TEXT, soporta un maximo de 500 caracteres
+    public static final int MAX_RESERVAS = 999; // se refiere al atributo max_reservas, presente en Membresias, se define un maximo de 999 (valor y longitud)
+    public static final int MAX_CAPACIDAD = 9999; // Se refiere al atributo capacidad, presente en Instalaciones, se define un maximo de 9999 (valor y longitud)
+
+    /*
+     * Se refiere al precio_hora de Instalaciones y precio_mensual de Membresias.
+     * En el modelo relacional son datos de tipo DECIMAL(8,2), internamente permiten un valor maximo a = 999999.99
+     * */
+    public static final BigDecimal MAX_PRECIO = new BigDecimal("999999.99");
+
+
     // Para validar el codigo del socio, tendrá una estructura a esta: S-001, S-002... tiene que comenzar con S-...
     private static final String REGEX_CODIGO_SOCIO = "S-\\d+";
 
     // Esta clase no debe instanciarse, por lo que se creará el constructor vacio, en el caso que se vaya a instanciar
     private Validator() {
     }
+
+    /*
+     * =================================================================================
+     * Anotaciones nuevas: se añadieron a los metodos las validaciones de longitud maxima
+     * para evitar desbordamiento.
+     * =================================================================================
+     * */
 
     /**
      * Este metodo validará el atributo DNI
@@ -59,35 +77,17 @@ public class Validator {
     public static void validarNombreCompleto(String valor, String nombreCampo) {
         if (valor == null || valor.isBlank())
             throw new IllegalArgumentException("El campo: '" + nombreCampo + "' no puede estar vacio");
+
+        // Limite según campo
+        int max = nombreCampo.equalsIgnoreCase("Apellidos") ? MAX_APELLIDOS : MAX_NOMBRE;
+
+        if (valor.length() > max) {
+            throw new IllegalArgumentException("El campo: '" + nombreCampo + "' no puede superar " +
+                    max + " caracteres. Longitud actual: " + valor.length());
+        }
+
         if (!valor.matches(REGEX_NOMBRE_COMPLETO))
             throw new IllegalArgumentException("El campo: '" + nombreCampo + "' solo admite letras, con la primera letra de cada palabra en mayuscula. Ejemplo: Francisco Javier");
-    }
-
-    /**
-     * Metodo para validar texto no vacio
-     *
-     * @param valor       La entrada de informacion, se validará que esta no esté vacia
-     * @param nombreCampo Se refiere al nombre del campo ingresado, por ejemplo DNI o nombre, etc...
-     * @throws IllegalArgumentException Cuando el valor de ingreso es NULL o está vacio
-     */
-
-    public static void validarTextoNoVacio(String valor, String nombreCampo) {
-        if (valor == null || valor.isBlank()) {
-            throw new IllegalArgumentException(nombreCampo + " No puede estar vacio");
-        }
-    }
-
-    /**
-     * Este metodo valida que un número sea positivo, para usarse con los IDs, cantidades, etc...
-     *
-     * @param valor       el valor numerico entero
-     * @param nombreCampo el nombre del campo en cuestion, id, cantidad, etc...
-     * @throws IllegalArgumentException cuando el campo numerico es negativo
-     */
-
-    public static void validarPositivo(int valor, String nombreCampo) {
-        if (valor <= 0)
-            throw new IllegalArgumentException("El campo '" + nombreCampo + "' debe ser un número positivo");
     }
 
     /**
@@ -97,10 +97,20 @@ public class Validator {
      * @throws IllegalArgumentException cuando el formato del email no es valido
      */
     public static void validarEmail(String email) {
-        if (email == null || email.isBlank())
+
+        if (email == null || email.isBlank()) {
             throw new IllegalArgumentException("El email no puede estar vacio");
-        if (!email.trim().matches(REGEX_EMAIL))
+        }
+
+        // Validar maximo de longitud
+        if (email.length() > MAX_EMAIL) {
+            throw new IllegalArgumentException("El email no puede superar " + MAX_EMAIL +
+                    " caracteres. Longitud actual: " + email.length());
+        }
+
+        if (!email.trim().matches(REGEX_EMAIL)) {
             throw new IllegalArgumentException("Formato de email invalido: " + email);
+        }
     }
 
     /**
@@ -120,55 +130,15 @@ public class Validator {
     public static void validarTelefono(String telefono) {
         // Si está vacio, no se valida nada
         if (telefono == null || telefono.isBlank()) return;
-        if (!telefono.trim().matches(REGEX_TELEFONO))
+
+        // Si no está vacio, comprobar longitud
+        if (telefono.length() > MAX_TELEFONO) {
+            throw new IllegalArgumentException("El telefono no puede superar " + MAX_TELEFONO +
+                    " caracteres");
+        }
+
+        if (!telefono.trim().matches(REGEX_TELEFONO)) {
             throw new IllegalArgumentException("Formato de telefono invalido. Debe tener 9 digitos. Ejemplo: 612-345-678 o 612345678");
-    }
-
-    /**
-     * Este metodo valida que el precio sea mayor que cero (positivo)
-     * Se usa para campos de tipo BigDecimal que representan dinero
-     *
-     * @param precio      el valor numerico de ingreso
-     * @param nombreCampo el nombre del campo en cuestión
-     * @throws IllegalArgumentException Si el precio es NULL o vacio
-     * @throws IllegalArgumentException Si el precio es menor o igual a cero (negativo)
-     */
-    public static void validarPrecio(BigDecimal precio, String nombreCampo) {
-        if (precio == null)
-            throw new IllegalArgumentException("El campo: '" + nombreCampo + "' no puede estar vacio");
-        // Ahora, se comprueba que el numero sea mayor a cero
-        // Al ser un objeto BigDecimal se utiliza el metodo compareTo()
-        // Este metodo devuelve  lo siguiente: 0 si es igual(a cero en este caso). -1 si es menor. 1 si es mayor(positivo)
-        if (precio.compareTo(BigDecimal.ZERO) <= 0)
-            throw new IllegalArgumentException("El campo: '" + nombreCampo + "' deber ser mayor que cero");
-    }
-
-    /**
-     * Este metodo valida que un numero entero no sea negativo
-     * Se utiliza para cantidades que pueden ser cero pero no un valor negativo
-     * en el caso del atributo de Membresia "maxReservas" (0 significaria sin limite de reservas)
-     *
-     * @param valor       el valor numerico entero a comprobar
-     * @param nombreCampo el nombre del campo en cuestion
-     */
-    public static void validarNoNegativo(Integer valor, String nombreCampo) {
-        if (valor == null)
-            throw new IllegalArgumentException("El campo: '" + nombreCampo + "' no puede estar vacio");
-        if (valor < 0)
-            throw new IllegalArgumentException("El campo: '" + nombreCampo + "' no puede ser negativo");
-    }
-
-    /**
-     * Este metodo valida que el tipo de membresia no sea null
-     * El Enum ya realiza la validacion de los valores.
-     *
-     * @param tipo el tipo de membresia
-     * @throws IllegalArgumentException si el tipo de membresia no es valido
-     */
-
-    public static void validarTipoMembresia(TipoMembresia tipo) {
-        if (tipo == null) {
-            throw new IllegalArgumentException("El tipo de membresia no puede estar vacio");
         }
     }
 
@@ -187,73 +157,108 @@ public class Validator {
             throw new IllegalArgumentException("Formato de número de socio inválido. Ejemplo: S-001");
     }
 
-    /**
-     * Metodo para validar el tipo de instalacion, que no sea null
-     * El enum creado ya realiza las validaciones de los valores insertados
-     *
-     * @param tipo el tipo de instalacion
-     * @throws IllegalArgumentException Si el tipo de instalacion ingresado es NULL
-     */
+    /*
+     * Metodos nuevos -- validaciones con limites
+     * */
 
-    public static void validarTipoInstalacion(TipoInstalacion tipo) {
-        if (tipo == null) {
-            throw new IllegalArgumentException("El tipo de instalacion no puede estar vacio");
+    /**
+     * Metodo para validar el nombre de una instalacion.
+     * Permite letras, numeros, espacios, y caracteres basicos.
+     *
+     * @param nombre el nombre de la instalacion
+     */
+    public static void validarNombreInstalacion(String nombre) {
+        if (nombre == null || nombre.isBlank()) {
+            throw new IllegalArgumentException("El nombre de la instalacion no puede estar vacio");
+        }
+
+        // Verificar longitud
+        if (nombre.length() > MAX_NOMBRE_INST) {
+            throw new IllegalArgumentException("El nombre no puede superar " + MAX_NOMBRE_INST +
+                    " caracteres. Longitud actual: " + nombre.length());
         }
     }
 
     /**
-     * Metodo que valida la capacidad de una instalacion, qie debe ser un numero estrictamente positivo
-     * Una instalacion no puede tener un aforo 0 o negativo
-     *
-     * @param capacidad numero que indica la capacidad de la instalacion (a validar)
-     * @throws IllegalArgumentException Cuando la capacidad es vacia o NULL
-     * @throws IllegalArgumentException Cuando la instalacion es negativa o cero
-     */
-    public static void validarCapacidad(Integer capacidad) {
-        if (capacidad == null)
-            throw new IllegalArgumentException("La capacidad de la instalacion no puede estar vacia");
-        if (capacidad <= 0)
-            throw new IllegalArgumentException("La capacidad de una instalacion debe ser mayor que cero");
+     * Metodo para validar un precio -- mayor que cero y dentro del rango DECIMAL(8,2).
+     * @param precio el precio de una instalacion o de una membresia
+     * @param nombreCampo el nombre del campo que se esta validando
+     * */
+    public static void validarPrecio(BigDecimal precio, String nombreCampo){
+        // Verificar si es null
+        if (precio == null){
+            throw new IllegalArgumentException("El campo '"+nombreCampo+"' no puede estar vacio");
+        }
+
+        // Validar que sea mayor a cero
+        if (precio.compareTo(BigDecimal.ZERO) <= 0){
+            throw new IllegalArgumentException("El campo '"+nombreCampo+"' no puede superar "+
+                    MAX_PRECIO+" €");
+        }
+
+        // Comprobar que no tenga mas de 2 decimales
+        if (precio.scale() > 2){
+            throw new IllegalArgumentException("El campo '"+nombreCampo+"' solo admite hasta 2 decimales");
+        }
     }
 
     /**
-     * Metodo que valida el estado de una reserva
-     * Es un Enum, esto ya garantiza valores validos, entonces se comprueba si es NULL
-     *
-     * @param estado el objeto Enum a comprobar
-     * @throws IllegalArgumentException si es objeto ingresado es null
-     */
-    public static void validarEstadoReserva(EstadoReserva estado) {
-        if (estado == null)
-            throw new IllegalArgumentException("El estado de la reserva no puede estar vacío");
+     * Metodo para validar la capacidad de una instalacion
+     * @param capacidad la capacidad de la instalacion
+     * */
+    public static void validarCapacidad(Integer capacidad){
+        // Validar si es null
+        if (capacidad == null){
+            throw new IllegalArgumentException("La capacidad no puede estar vacia ");
+        }
+
+        // Verificar si es menor o igual a cero
+        if (capacidad <= 0){
+            throw new IllegalArgumentException("La capacidad debe ser mayor que cero");
+        }
+
+        // Validar maxima longitud y valor del dato
+        if (capacidad > MAX_CAPACIDAD){
+            throw new IllegalArgumentException("La capacidad no puede superar "+MAX_CAPACIDAD+" personas.");
+        }
     }
 
     /**
-     * Metodo que valida que una fecha no sea nula
-     *
-     * @param fecha       la fecha ingresada a comprobar
-     * @param nombreCampo El nombre del campo en cuestion
-     * @throws IllegalArgumentException en el caso que la fecha esté vacia o sea nula
-     */
-    public static void validarFecha(LocalDate fecha, String nombreCampo) {
-        if (fecha == null)
-            throw new IllegalArgumentException("El campo '" + nombreCampo + "' no puede estar vacío");
+     * Metodo para validar el maximo de reservas de una membresia.
+     * 0 = sin limite, es un valor valido
+     * @param maxReservas el maximo de reservas que establece una membresia
+     * */
+    public static void validarMaxReservas(Integer maxReservas){
+        // Validar si es null
+        if (maxReservas == null){
+            throw new IllegalArgumentException("El maximo de reservas no puede estar vacio");
+        }
+
+        // Verificar si es un valor negativo
+        if (maxReservas < 0){
+            throw new IllegalArgumentException("El maximo de reservas no puede ser un valor negativo.");
+        }
+
+        // Validar longitud y valor maximo
+        if (maxReservas > MAX_RESERVAS){
+            throw new IllegalArgumentException("El maximo de reservas no puede superar "+MAX_RESERVAS);
+        }
     }
 
     /**
-     * Metodo para validación basica de horas
-     * La hora de fin debe ser posterior a la hora de inicio.
-     * Ambas horas de entrada deben ser validadas antes de comprobar si cumplen con la primera condicion
-     *
-     * @param horaInicio la hora de inicio de la reserva
-     * @param horaFin    la hora de finalizacion de la reserva
-     */
-    public static void validarRangoHoras(LocalTime horaInicio, LocalTime horaFin) {
-        if (horaInicio == null)
-            throw new IllegalArgumentException("La hora de inicio no puede estar vacía");
-        if (horaFin == null)
-            throw new IllegalArgumentException("La hora de fin no puede estar vacía");
-        if (!horaFin.isAfter(horaInicio))
-            throw new IllegalArgumentException("La hora de fin debe ser posterior a la hora de inicio");
+     * Metodo para validar la descripcion de una membresia -- campo TEXT opcional con limite
+     * @param descripcion la descripcion de la membresia
+     * */
+    public static void validarDescripcion(String descripcion){
+        // Verificar si es null o es vacio (para no validar nada mas)
+        if (descripcion == null || descripcion.isBlank()) return;
+
+        // Validar longitud maxima
+        if (descripcion.length() > MAX_DESCRIPCION){
+            throw new IllegalArgumentException("La descripcion no puede superar "+MAX_DESCRIPCION+
+                    " caracteres. Longitud actual: "+descripcion.length());
+        }
     }
+
+
 }

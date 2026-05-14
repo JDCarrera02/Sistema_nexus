@@ -25,9 +25,9 @@ CREATE TABLE membresias(
 -- Creación de la tabla CLIENTES
 CREATE TABLE clientes(
 	dni CHAR(9) PRIMARY KEY,
-	nombre VARCHAR(50) NOT NULL,
-	apellidos VARCHAR(100) NOT NULL,
-	email VARCHAR(100) NOT NULL UNIQUE, -- El email debe ser unico en todo el sistema
+	nombre VARCHAR(100) NOT NULL,
+	apellidos VARCHAR(150) NOT NULL,
+	email VARCHAR(150) NOT NULL UNIQUE, -- El email debe ser unico en todo el sistema
 	telefono VARCHAR(15),
 	fecha_nacimiento DATE
 );
