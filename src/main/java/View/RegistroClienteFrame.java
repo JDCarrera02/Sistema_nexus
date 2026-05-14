@@ -124,7 +124,7 @@ public class RegistroClienteFrame extends JFrame implements VistaCliente{
 
     private void registrar() {
         // Recoger los datos del formulario
-        String dni      = txtDni.getText().trim();
+        String dni      = txtDni.getText().trim().toUpperCase();
         String nombre   = txtNombre.getText().trim();
         String apellidos = txtApellidos.getText().trim();
         String email    = txtEmail.getText().trim();
