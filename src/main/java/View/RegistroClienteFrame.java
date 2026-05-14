@@ -1,8 +1,12 @@
 package View;
 
 import Controller.ClienteController;
+import Util.Validator;
 
 import javax.swing.*;
+import javax.swing.text.AttributeSet;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.PlainDocument;
 import java.awt.*;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
@@ -56,26 +60,34 @@ public class RegistroClienteFrame extends JFrame implements VistaCliente{
 
         agregarCampo(panel, gbc, "DNI:", 2);
         txtDni = new JTextField(15);
+        // Limitar los caracteres
+        limitarCaracteres(txtDni, 9);
         agregarComponente(panel, gbc, txtDni, 2);
 
         agregarCampo(panel, gbc, "Nombre:", 3);
         txtNombre = new JTextField(15);
+        // Limitar los caracteres
+        limitarCaracteres(txtNombre, Validator.MAX_NOMBRE);
         agregarComponente(panel, gbc, txtNombre, 3);
 
         agregarCampo(panel, gbc, "Apellidos:", 4);
         txtApellidos = new JTextField(15);
+        limitarCaracteres(txtApellidos,  Validator.MAX_APELLIDOS);
         agregarComponente(panel, gbc, txtApellidos, 4);
 
         agregarCampo(panel, gbc, "Email:", 5);
         txtEmail = new JTextField(15);
+        limitarCaracteres(txtEmail, Validator.MAX_EMAIL);
         agregarComponente(panel, gbc, txtEmail, 5);
 
         agregarCampo(panel, gbc, "Teléfono (opcional):", 6);
         txtTelefono = new JTextField(15);
+        limitarCaracteres(txtTelefono, Validator.MAX_TELEFONO);
         agregarComponente(panel, gbc, txtTelefono, 6);
 
         agregarCampo(panel, gbc, "Fecha nacimiento (yyyy-MM-dd):", 7);
         txtFechaNacimiento = new JTextField(15);
+        limitarCaracteres(txtFechaNacimiento, 10); // Respetando el formato de la fecha yyyy-MM-dd = 10 caracteres
         agregarComponente(panel, gbc, txtFechaNacimiento, 7);
 
         // Nota informativa
@@ -135,8 +147,10 @@ public class RegistroClienteFrame extends JFrame implements VistaCliente{
         }
 
         // Llamar al controlador de cliente para insertar
-        clienteController.insertarCliente(dni, nombre, apellidos,
+        boolean exito = clienteController.insertarCliente(dni, nombre, apellidos,
                 email, telefono, fechaNacimiento);
+        // Si todo sale bien, se cierra la ventana
+        if (exito) dispose();
     }
 
     // Metodos auxiliares, para inicializar campos y añadirlos
@@ -152,8 +166,20 @@ public class RegistroClienteFrame extends JFrame implements VistaCliente{
         panel.add(componente, gbc);
     }
 
-    // Metodos de comunicacion, son llamados por el controlador
+    // Metodo auxiliar para limitar caracteres en un JTextField
+    private void limitarCaracteres(JTextField campo, int maxCaracteres) {
+        campo.setDocument(new PlainDocument() {
+            @Override
+            public void insertString(int offs, String str, AttributeSet a)
+                    throws BadLocationException {
+                if (str == null) return;
+                if ((getLength() + str.length()) <= maxCaracteres)
+                    super.insertString(offs, str, a);
+            }
+        });
+    }
 
+    // Metodos de comunicacion, son llamados por el controlador
     public void mostrarError(String mensaje) {
         JOptionPane.showMessageDialog(this, mensaje,
                 "Error", JOptionPane.ERROR_MESSAGE);

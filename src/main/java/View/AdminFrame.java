@@ -3,6 +3,7 @@ package View;
 import Controller.*;
 import Model.*;
 import Util.Sesion;
+import Util.Validator;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -305,6 +306,13 @@ public class AdminFrame extends JFrame implements VistaCliente {
         JTextField txtFecha = new JTextField(15);
         gbc.gridx = 1;
         dialogo.add(txtFecha, gbc);
+
+        // Limitar longitudes y valores maximos de entradas
+        limitarCaracteres(txtDni, 9);
+        limitarCaracteres(txtNombre, Validator.MAX_NOMBRE);
+        limitarCaracteres(txtApellidos, Validator.MAX_APELLIDOS);
+        limitarCaracteres(txtEmail, Validator.MAX_EMAIL);
+        limitarCaracteres(txtTelefono, Validator.MAX_TELEFONO);
 
         // Botones
         JPanel panelBotones = new JPanel(new FlowLayout());
@@ -1150,6 +1158,11 @@ public class AdminFrame extends JFrame implements VistaCliente {
         gbc.gridx = 1;
         dialogo.add(txtDescripcion, gbc);
 
+        // Limitar longitud y valores maximos a los campos
+        limitarCaracteres(txtPrecio, 9);
+        limitarCaracteres(txtMaxReservas, 3);
+        limitarCaracteres(txtDescripcion, Validator.MAX_DESCRIPCION);
+
         // Botones
         JPanel panelBotones = new JPanel(new FlowLayout());
         JButton btnGuardar = new JButton("Guardar");
@@ -1346,6 +1359,12 @@ public class AdminFrame extends JFrame implements VistaCliente {
             gbc.gridwidth = 2;
             dialogo.add(chkActiva, gbc);
         }
+
+        // Limitar longitud y valores maximos en los campos
+        limitarCaracteres(txtNombre, Validator.MAX_NOMBRE_INST);
+        limitarCaracteres(txtCapacidad, 4);
+        limitarCaracteres(txtPrecio, 9);
+
 
         // Botones
         JPanel panelBotones = new JPanel(new FlowLayout());
@@ -1621,6 +1640,27 @@ public class AdminFrame extends JFrame implements VistaCliente {
         Sesion.getInstancia().cerrarSesion();
         new LoginFrame().setVisible(true);
         this.dispose();
+    }
+
+    /**
+     * Metodo auxiliar para limitar caracteres en un JTextField.
+     * Para que el usuario no pueda escribir mas allá del limite permitido para ciertos campos de entrada.
+     * Evitando el desbordamiento y que se rompa el programa
+     * @param campo el JTextField que contiene la informacion ingresada
+     * @param maxCaracteres la longitud maxima y/o valor maximo que debe tener esta entrada
+     * */
+    private void limitarCaracteres(JTextField campo, int maxCaracteres){
+        campo.setDocument(new javax.swing.text.PlainDocument(){
+            @Override
+            public void insertString(int offs, String str, javax.swing.text.AttributeSet a)
+                    throws javax.swing.text.BadLocationException
+            {
+                if (str == null) return;
+                if ((getLength()+ str.length() <= maxCaracteres)){
+                    super.insertString(offs,str,a);
+                }
+            }
+        });
     }
 
     // =========================================================

@@ -82,3 +82,4 @@
 [13/05/2026] Inicio de sesión como socio — DNI: 45678901D
 [13/05/2026] Inicio de sesión como socio — DNI: 45678901D
 [13/05/2026] Inicio de sesión como socio — DNI: 45678901D
+[14/05/2026] Inicio de sesión como administrador.
