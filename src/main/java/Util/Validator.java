@@ -192,8 +192,12 @@ public class Validator {
 
         // Validar que sea mayor a cero
         if (precio.compareTo(BigDecimal.ZERO) <= 0){
-            throw new IllegalArgumentException("El campo '"+nombreCampo+"' no puede superar "+
-                    MAX_PRECIO+" €");
+            throw new IllegalArgumentException("El campo '"+nombreCampo+"' debe ser mayor que cero");
+        }
+
+        // Validar limite
+        if (precio.compareTo(MAX_PRECIO) > 0) {
+            throw new IllegalArgumentException("El campo '"+nombreCampo+"' no puede superar "+MAX_PRECIO+" €");
         }
 
         // Comprobar que no tenga mas de 2 decimales
