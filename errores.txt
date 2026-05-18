@@ -6,3 +6,4 @@
 [13/05/2026] Intento de login fallido — DNI: 4567890D
 [18/05/2026] Intento de login fallido — DNI: 23423423423
 [18/05/2026] Intento de login fallido — DNI: admin
+[19/05/2026] Intento de login fallido — DNI: 12345678A

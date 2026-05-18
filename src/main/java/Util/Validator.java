@@ -17,6 +17,7 @@ public class Validator {
     private static final String REGEX_EMAIL = "^[a-zA-Z0-9._\\-*+]+@[a-zA-Z0-9._\\-+*]+\\.[a-zA-Z]{2,}$";
     private static final String REGEX_NOMBRE_COMPLETO = "\\p{Lu}\\p{Ll}+(\\s\\p{Lu}\\p{Ll}+)*";
     private static final String REGEX_TELEFONO = "\\d{3}-?\\d{3}-?\\d{3}";
+    private static final String REGEX_NOMBRE_INSTALACION = "(?=.*\\p{L})[\\p{L}\\p{N}\\s]+";
 
     // Constantes para definir longitudes maximas de los datos, y evitar desbordamiento cuando el usuario manipule registros
     public static final int MAX_NOMBRE = 100; // El maximo de caracteres, siguiendo el modelo relacional, para el nombre son 100 caracteres (VARCHAR(100))
@@ -164,10 +165,16 @@ public class Validator {
     /**
      * Metodo para validar el nombre de una instalacion.
      * Permite letras, numeros, espacios, y caracteres basicos.
+     * Se añadio el regex que permite letras y numeros, haciendo que por lo menos exista una letra
+     * y se controle evitar un nombre como "29" o "9"
+     * Explicación del regex:
+     * [\\p{L}\\p{N}\\s]+ -> permite letras Unicode, números y espacios
+     * (?=.*\\p{L}) -> lookahead que exige al menos una letra
      *
      * @param nombre el nombre de la instalacion
      */
     public static void validarNombreInstalacion(String nombre) {
+
         if (nombre == null || nombre.isBlank()) {
             throw new IllegalArgumentException("El nombre de la instalacion no puede estar vacio");
         }
@@ -177,94 +184,101 @@ public class Validator {
             throw new IllegalArgumentException("El nombre no puede superar " + MAX_NOMBRE_INST +
                     " caracteres. Longitud actual: " + nombre.length());
         }
+
+        // Validar formato
+        if (!nombre.matches(REGEX_NOMBRE_INSTALACION)) {
+            throw new IllegalArgumentException("El nombre de la instalacion solo admite letras, numeros y espacios " +
+                    "y debe contener al menos una letra. Ejemplo: Pista Pádel 1");
+        }
     }
 
     /**
      * Metodo para validar un precio -- mayor que cero y dentro del rango DECIMAL(8,2).
-     * @param precio el precio de una instalacion o de una membresia
+     *
+     * @param precio      el precio de una instalacion o de una membresia
      * @param nombreCampo el nombre del campo que se esta validando
-     * */
-    public static void validarPrecio(BigDecimal precio, String nombreCampo){
+     */
+    public static void validarPrecio(BigDecimal precio, String nombreCampo) {
         // Verificar si es null
-        if (precio == null){
-            throw new IllegalArgumentException("El campo '"+nombreCampo+"' no puede estar vacio");
+        if (precio == null) {
+            throw new IllegalArgumentException("El campo '" + nombreCampo + "' no puede estar vacio");
         }
 
-        // Validar si contiene letras
-
-
         // Validar que sea mayor a cero
-        if (precio.compareTo(BigDecimal.ZERO) <= 0){
-            throw new IllegalArgumentException("El campo '"+nombreCampo+"' debe ser mayor que cero");
+        if (precio.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("El campo '" + nombreCampo + "' debe ser mayor que cero");
         }
 
         // Validar limite
         if (precio.compareTo(MAX_PRECIO) > 0) {
-            throw new IllegalArgumentException("El campo '"+nombreCampo+"' no puede superar "+MAX_PRECIO+" €");
+            throw new IllegalArgumentException("El campo '" + nombreCampo + "' no puede superar " + MAX_PRECIO + " €");
         }
 
         // Comprobar que no tenga mas de 2 decimales
-        if (precio.scale() > 2){
-            throw new IllegalArgumentException("El campo '"+nombreCampo+"' solo admite hasta 2 decimales");
+        if (precio.scale() > 2) {
+            throw new IllegalArgumentException("El campo '" + nombreCampo + "' solo admite hasta 2 decimales");
         }
 
     }
 
     /**
      * Metodo para validar la capacidad de una instalacion
+     *
      * @param capacidad la capacidad de la instalacion
-     * */
-    public static void validarCapacidad(Integer capacidad){
+     */
+    public static void validarCapacidad(Integer capacidad) {
         // Validar si es null
-        if (capacidad == null){
+        if (capacidad == null) {
             throw new IllegalArgumentException("La capacidad no puede estar vacia ");
         }
 
         // Verificar si es menor o igual a cero
-        if (capacidad <= 0){
+        if (capacidad <= 0) {
             throw new IllegalArgumentException("La capacidad debe ser mayor que cero");
         }
 
         // Validar maxima longitud y valor del dato
-        if (capacidad > MAX_CAPACIDAD){
-            throw new IllegalArgumentException("La capacidad no puede superar "+MAX_CAPACIDAD+" personas.");
+        if (capacidad > MAX_CAPACIDAD) {
+            throw new IllegalArgumentException("La capacidad no puede superar " + MAX_CAPACIDAD + " personas.");
         }
     }
 
     /**
      * Metodo para validar el maximo de reservas de una membresia.
      * 0 = sin limite, es un valor valido
+     *
      * @param maxReservas el maximo de reservas que establece una membresia
-     * */
-    public static void validarMaxReservas(Integer maxReservas){
+     */
+    public static void validarMaxReservas(Integer maxReservas) {
         // Validar si es null
-        if (maxReservas == null){
+        if (maxReservas == null) {
             throw new IllegalArgumentException("El maximo de reservas no puede estar vacio");
         }
 
         // Verificar si es un valor negativo
-        if (maxReservas < 0){
+        if (maxReservas < 0) {
             throw new IllegalArgumentException("El maximo de reservas no puede ser un valor negativo.");
         }
 
         // Validar longitud y valor maximo
-        if (maxReservas > MAX_RESERVAS){
-            throw new IllegalArgumentException("El maximo de reservas no puede superar "+MAX_RESERVAS);
+        if (maxReservas > MAX_RESERVAS) {
+            throw new IllegalArgumentException("El maximo de reservas no puede superar " + MAX_RESERVAS);
         }
     }
 
     /**
      * Metodo para validar la descripcion de una membresia -- campo TEXT opcional con limite
+     *
      * @param descripcion la descripcion de la membresia
-     * */
-    public static void validarDescripcion(String descripcion){
+     */
+    public static void validarDescripcion(String descripcion) {
         // Verificar si es null o es vacio (para no validar nada mas)
         if (descripcion == null || descripcion.isBlank()) return;
 
         // Validar longitud maxima
-        if (descripcion.length() > MAX_DESCRIPCION){
-            throw new IllegalArgumentException("La descripcion no puede superar "+MAX_DESCRIPCION+
-                    " caracteres. Longitud actual: "+descripcion.length());
+        if (descripcion.length() > MAX_DESCRIPCION) {
+            throw new IllegalArgumentException("La descripcion no puede superar " + MAX_DESCRIPCION +
+                    " caracteres. Longitud actual: " + descripcion.length());
         }
     }
 

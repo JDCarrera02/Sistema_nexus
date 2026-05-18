@@ -52,6 +52,13 @@ public class InstalacionController {
                 throw new IllegalArgumentException("El tipo de instalación no puede estar vacío");
             }
 
+            // Verificar si la capacidad es null
+            if (txtCapacidad == null || txtCapacidad.isBlank()){
+                vista.mostrarError("La capacidad no puede estar vacia");
+                return false;
+            }
+
+            // Parsear entrada a formato numerico (si salta excepcion es porque contiene letras y no es valido)
             try {
                 capacidad = Integer.parseInt(txtCapacidad);
             } catch (NumberFormatException e) {
@@ -61,7 +68,13 @@ public class InstalacionController {
 
             Validator.validarCapacidad(capacidad);
 
-            // Validar si el precio tiene letras
+            // Verificar si el precio es vacio
+            if (precioHora ==  null || precioHora.isBlank()){
+                vista.mostrarError("El precio por hora no puede estar vacio ");
+                return false;
+            }
+
+            // Validar si el precio tiene letras (no es valido)
             try {
                 precio = new BigDecimal(precioHora); // Si no hay ninguna excepcion, es un precio valido
             } catch (NumberFormatException e) {
@@ -110,6 +123,8 @@ public class InstalacionController {
         // Validacion de entradas
         try {
 
+            Validator.validarNombreInstalacion(nombre);
+
             if (idInstalacion == null) {
                 throw new IllegalArgumentException("El id de la instalación no puede estar vacío");
             }
@@ -118,6 +133,12 @@ public class InstalacionController {
                 throw new IllegalArgumentException("El tipo de instalación no puede estar vacío");
             }
 
+            if (txtCapacidad == null || txtCapacidad.isBlank()){
+                vista.mostrarError("La capacidad no puede estar vacia. ");
+                return false;
+            }
+
+            // Convertir capacidad
             try {
                 capacidad = Integer.parseInt(txtCapacidad);
             } catch (NumberFormatException e) {
@@ -126,6 +147,12 @@ public class InstalacionController {
             }
 
             Validator.validarCapacidad(capacidad);
+
+            // Verificar si el precio es null
+            if (precioHora == null || precioHora.isBlank()){
+                vista.mostrarError("El precio por hora no puede estar vacio");
+                return false;
+            }
 
             // Validar si el precio tiene letras
             try {

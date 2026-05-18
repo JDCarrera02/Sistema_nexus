@@ -149,7 +149,7 @@ public class AdminFrame extends JFrame implements VistaCliente {
 
         // Panel de búsqueda
         JPanel panelBusqueda = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        panelBusqueda.add(new JLabel("Buscar:"));
+        panelBusqueda.add(new JLabel("Buscar por DNI/nombre/apellidos:"));
         txtBuscarDni = new JTextField(12);
         btnBuscarCliente = new JButton("Buscar");
         btnRefrescarClientes = new JButton("Ver todos");
@@ -259,11 +259,15 @@ public class AdminFrame extends JFrame implements VistaCliente {
 
         gbc.gridwidth = 1;
 
+        // Campos de entrada de datos
+        // Se limitan los campos de acuerdo a sus longitudes y tipos de datos permitidos
+
         // DNI
         gbc.gridx = 0;
         gbc.gridy = 1;
         dialogo.add(new JLabel("DNI:"), gbc);
         JTextField txtDni = new JTextField(15);
+        limitarCaracteres(txtDni, 9);
         gbc.gridx = 1;
         dialogo.add(txtDni, gbc);
 
@@ -272,6 +276,7 @@ public class AdminFrame extends JFrame implements VistaCliente {
         gbc.gridy = 2;
         dialogo.add(new JLabel("Nombre:"), gbc);
         JTextField txtNombre = new JTextField(15);
+        limitarCaracteres(txtNombre, Validator.MAX_NOMBRE);
         gbc.gridx = 1;
         dialogo.add(txtNombre, gbc);
 
@@ -280,6 +285,7 @@ public class AdminFrame extends JFrame implements VistaCliente {
         gbc.gridy = 3;
         dialogo.add(new JLabel("Apellidos:"), gbc);
         JTextField txtApellidos = new JTextField(15);
+        limitarCaracteres(txtApellidos, Validator.MAX_APELLIDOS);
         gbc.gridx = 1;
         dialogo.add(txtApellidos, gbc);
 
@@ -288,6 +294,7 @@ public class AdminFrame extends JFrame implements VistaCliente {
         gbc.gridy = 4;
         dialogo.add(new JLabel("Email:"), gbc);
         JTextField txtEmail = new JTextField(15);
+        limitarCaracteres(txtEmail, Validator.MAX_EMAIL);
         gbc.gridx = 1;
         dialogo.add(txtEmail, gbc);
 
@@ -296,6 +303,7 @@ public class AdminFrame extends JFrame implements VistaCliente {
         gbc.gridy = 5;
         dialogo.add(new JLabel("Teléfono (opcional):"), gbc);
         JTextField txtTelefono = new JTextField(15);
+        limitarCaracteres(txtTelefono, Validator.MAX_TELEFONO);
         gbc.gridx = 1;
         dialogo.add(txtTelefono, gbc);
 
@@ -304,15 +312,10 @@ public class AdminFrame extends JFrame implements VistaCliente {
         gbc.gridy = 6;
         dialogo.add(new JLabel("Fecha nacimiento (yyyy-MM-dd):"), gbc);
         JTextField txtFecha = new JTextField(15);
+        limitarCaracteres(txtFecha,10);
         gbc.gridx = 1;
         dialogo.add(txtFecha, gbc);
 
-        // Limitar longitudes y valores maximos de entradas
-        limitarCaracteres(txtDni, 9);
-        limitarCaracteres(txtNombre, Validator.MAX_NOMBRE);
-        limitarCaracteres(txtApellidos, Validator.MAX_APELLIDOS);
-        limitarCaracteres(txtEmail, Validator.MAX_EMAIL);
-        limitarCaracteres(txtTelefono, Validator.MAX_TELEFONO);
 
         // Botones
         JPanel panelBotones = new JPanel(new FlowLayout());
@@ -384,7 +387,9 @@ public class AdminFrame extends JFrame implements VistaCliente {
         gbc.gridx = 0;
         gbc.gridy = 1;
         dialogo.add(new JLabel("Nombre:"), gbc);
-        JTextField txtNombre = new JTextField(cliente.getNombre(), 15);
+        JTextField txtNombre = new JTextField(15);
+        limitarCaracteres(txtNombre,Validator.MAX_NOMBRE);
+        txtNombre.setText(cliente.getNombre());
         gbc.gridx = 1;
         dialogo.add(txtNombre, gbc);
 
@@ -392,7 +397,9 @@ public class AdminFrame extends JFrame implements VistaCliente {
         gbc.gridx = 0;
         gbc.gridy = 2;
         dialogo.add(new JLabel("Apellidos:"), gbc);
-        JTextField txtApellidos = new JTextField(cliente.getApellidos(), 15);
+        JTextField txtApellidos = new JTextField(15);
+        limitarCaracteres(txtApellidos,Validator.MAX_APELLIDOS);
+        txtApellidos.setText(cliente.getApellidos());
         gbc.gridx = 1;
         dialogo.add(txtApellidos, gbc);
 
@@ -400,7 +407,9 @@ public class AdminFrame extends JFrame implements VistaCliente {
         gbc.gridx = 0;
         gbc.gridy = 3;
         dialogo.add(new JLabel("Email:"), gbc);
-        JTextField txtEmail = new JTextField(cliente.getEmail(), 15);
+        JTextField txtEmail = new JTextField(15);
+        limitarCaracteres(txtEmail,Validator.MAX_EMAIL);
+        txtEmail.setText(cliente.getEmail());
         gbc.gridx = 1;
         dialogo.add(txtEmail, gbc);
 
@@ -408,9 +417,9 @@ public class AdminFrame extends JFrame implements VistaCliente {
         gbc.gridx = 0;
         gbc.gridy = 4;
         dialogo.add(new JLabel("Teléfono:"), gbc);
-        JTextField txtTelefono = new JTextField(
-                cliente.getTelefono() != null ? cliente.getTelefono() : "", 15
-        );
+        JTextField txtTelefono = new JTextField(15);
+        limitarCaracteres(txtTelefono, Validator.MAX_TELEFONO);
+        txtTelefono.setText(cliente.getTelefono() != null ? cliente.getTelefono() : "");
         gbc.gridx = 1;
         dialogo.add(txtTelefono, gbc);
 
@@ -418,10 +427,9 @@ public class AdminFrame extends JFrame implements VistaCliente {
         gbc.gridx = 0;
         gbc.gridy = 5;
         dialogo.add(new JLabel("Fecha nacimiento (yyyy-MM-dd):"), gbc);
-        JTextField txtFecha = new JTextField(
-                cliente.getFechaNacimiento() != null
-                        ? cliente.getFechaNacimiento().toString() : "", 15
-        );
+        JTextField txtFecha = new JTextField(15);
+        limitarCaracteres(txtFecha, 10);
+        txtFecha.setText(cliente.getFechaNacimiento() != null ? cliente.getFechaNacimiento().toString() : "");
         gbc.gridx = 1;
         dialogo.add(txtFecha, gbc);
 
@@ -667,7 +675,9 @@ public class AdminFrame extends JFrame implements VistaCliente {
         gbc.gridx = 0;
         gbc.gridy = 3;
         dialogo.add(new JLabel("Nombre:"), gbc);
-        JTextField txtNombre = new JTextField(detalle.getNombre(), 15);
+        JTextField txtNombre = new JTextField(15);
+        limitarCaracteres(txtNombre,Validator.MAX_NOMBRE);
+        txtNombre.setText(detalle.getNombre());
         gbc.gridx = 1;
         dialogo.add(txtNombre, gbc);
 
@@ -675,7 +685,9 @@ public class AdminFrame extends JFrame implements VistaCliente {
         gbc.gridx = 0;
         gbc.gridy = 4;
         dialogo.add(new JLabel("Apellidos:"), gbc);
-        JTextField txtApellidos = new JTextField(detalle.getApellidos(), 15);
+        JTextField txtApellidos = new JTextField(15);
+        limitarCaracteres(txtApellidos, Validator.MAX_APELLIDOS);
+        txtApellidos.setText(detalle.getApellidos());
         gbc.gridx = 1;
         dialogo.add(txtApellidos, gbc);
 
@@ -683,7 +695,9 @@ public class AdminFrame extends JFrame implements VistaCliente {
         gbc.gridx = 0;
         gbc.gridy = 5;
         dialogo.add(new JLabel("Email:"), gbc);
-        JTextField txtEmail = new JTextField(detalle.getEmail(), 15);
+        JTextField txtEmail = new JTextField(15);
+        limitarCaracteres(txtEmail, Validator.MAX_EMAIL);
+        txtEmail.setText(detalle.getEmail());
         gbc.gridx = 1;
         dialogo.add(txtEmail, gbc);
 
@@ -691,9 +705,9 @@ public class AdminFrame extends JFrame implements VistaCliente {
         gbc.gridx = 0;
         gbc.gridy = 6;
         dialogo.add(new JLabel("Teléfono:"), gbc);
-        JTextField txtTelefono = new JTextField(
-                detalle.getTelefono() != null ? detalle.getTelefono() : "", 15
-        );
+        JTextField txtTelefono = new JTextField(15);
+        limitarCaracteres(txtTelefono, Validator.MAX_TELEFONO);
+        txtTelefono.setText(detalle.getTelefono() != null ? detalle.getTelefono() : "");
         gbc.gridx = 1;
         dialogo.add(txtTelefono, gbc);
 
@@ -826,9 +840,9 @@ public class AdminFrame extends JFrame implements VistaCliente {
         gbc.gridy = 3;
         dialogo.add(new JLabel("Fecha alta (yyyy-MM-dd):"), gbc);
 
-        JTextField txtFechaAlta = new JTextField(
-                LocalDate.now().toString(), 10
-        );
+        JTextField txtFechaAlta = new JTextField(10);
+        limitarCaracteres(txtFechaAlta, 10);
+        txtFechaAlta.setText(LocalDate.now().toString());
         gbc.gridx = 1;
         dialogo.add(txtFechaAlta, gbc);
 
@@ -1132,9 +1146,9 @@ public class AdminFrame extends JFrame implements VistaCliente {
         gbc.gridx = 0;
         gbc.gridy = 0;
         dialogo.add(new JLabel("Precio mensual:"), gbc);
-        JTextField txtPrecio = new JTextField(
-                membresia.getPrecioMensual().toString(), 10
-        );
+        JTextField txtPrecio = new JTextField(10);
+        limitarCaracteres(txtPrecio, 9);
+        txtPrecio.setText(membresia.getPrecioMensual().toString());
         gbc.gridx = 1;
         dialogo.add(txtPrecio, gbc);
 
@@ -1142,9 +1156,9 @@ public class AdminFrame extends JFrame implements VistaCliente {
         gbc.gridx = 0;
         gbc.gridy = 1;
         dialogo.add(new JLabel("Max. reservas:"), gbc);
-        JTextField txtMaxReservas = new JTextField(
-                membresia.getMaxReservas().toString(), 10
-        );
+        JTextField txtMaxReservas = new JTextField(10);
+        limitarCaracteres(txtMaxReservas, 3);
+        txtMaxReservas.setText(membresia.getMaxReservas().toString());
         gbc.gridx = 1;
         dialogo.add(txtMaxReservas, gbc);
 
@@ -1152,16 +1166,11 @@ public class AdminFrame extends JFrame implements VistaCliente {
         gbc.gridx = 0;
         gbc.gridy = 2;
         dialogo.add(new JLabel("Descripcion:"), gbc);
-        JTextField txtDescripcion = new JTextField(
-                membresia.getDescripcion() != null ? membresia.getDescripcion() : "", 10
-        );
+        JTextField txtDescripcion = new JTextField(10);
+        limitarCaracteres(txtDescripcion, Validator.MAX_DESCRIPCION);
+        txtDescripcion.setText(membresia.getDescripcion() != null ? membresia.getDescripcion() : "");
         gbc.gridx = 1;
         dialogo.add(txtDescripcion, gbc);
-
-        // Limitar longitud y valores maximos a los campos
-        limitarCaracteres(txtPrecio, 9);
-        limitarCaracteres(txtMaxReservas, 3);
-        limitarCaracteres(txtDescripcion, Validator.MAX_DESCRIPCION);
 
         // Botones
         JPanel panelBotones = new JPanel(new FlowLayout());
@@ -1268,8 +1277,10 @@ public class AdminFrame extends JFrame implements VistaCliente {
                 mostrarError("Selecciona una instalacion de la tabla.");
                 return;
             }
+
             Integer id = (Integer) modeloInstalaciones.getValueAt(fila, 0);
             Instalacion instalacion = instalacionController.buscarPorId(id);
+
             if (instalacion != null)
                 mostrarDialogoInstalacion(instalacion);
         });
@@ -1313,9 +1324,9 @@ public class AdminFrame extends JFrame implements VistaCliente {
         gbc.gridx = 0;
         gbc.gridy = 0;
         dialogo.add(new JLabel("Nombre:"), gbc);
-        JTextField txtNombre = new JTextField(
-                esNueva ? "" : instalacion.getNombreInstalacion(), 15
-        );
+        JTextField txtNombre = new JTextField(15);
+        limitarCaracteres(txtNombre, Validator.MAX_NOMBRE_INST);
+        txtNombre.setText(esNueva?"":instalacion.getNombreInstalacion());
         gbc.gridx = 1;
         dialogo.add(txtNombre, gbc);
 
@@ -1333,9 +1344,9 @@ public class AdminFrame extends JFrame implements VistaCliente {
         gbc.gridx = 0;
         gbc.gridy = 2;
         dialogo.add(new JLabel("Capacidad:"), gbc);
-        JTextField txtCapacidad = new JTextField(
-                esNueva ? "" : instalacion.getCapacidad().toString(), 15
-        );
+        JTextField txtCapacidad = new JTextField(15);
+        limitarCaracteres(txtCapacidad, 4);
+        txtCapacidad.setText(esNueva?"":instalacion.getCapacidad().toString());
         gbc.gridx = 1;
         dialogo.add(txtCapacidad, gbc);
 
@@ -1343,9 +1354,9 @@ public class AdminFrame extends JFrame implements VistaCliente {
         gbc.gridx = 0;
         gbc.gridy = 3;
         dialogo.add(new JLabel("Precio/hora:"), gbc);
-        JTextField txtPrecio = new JTextField(
-                esNueva ? "" : instalacion.getPrecioHora().toString(), 15
-        );
+        JTextField txtPrecio = new JTextField(15);
+        limitarCaracteres(txtPrecio,9);
+        txtPrecio.setText(esNueva?"":instalacion.getPrecioHora().toString());
         gbc.gridx = 1;
         dialogo.add(txtPrecio, gbc);
 
@@ -1359,12 +1370,6 @@ public class AdminFrame extends JFrame implements VistaCliente {
             gbc.gridwidth = 2;
             dialogo.add(chkActiva, gbc);
         }
-
-        // Limitar longitud y valores maximos en los campos
-        limitarCaracteres(txtNombre, Validator.MAX_NOMBRE_INST);
-        limitarCaracteres(txtCapacidad, 4);
-        limitarCaracteres(txtPrecio, 9);
-
 
         // Botones
         JPanel panelBotones = new JPanel(new FlowLayout());

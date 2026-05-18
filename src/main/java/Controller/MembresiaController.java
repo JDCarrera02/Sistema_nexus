@@ -66,7 +66,13 @@ public class MembresiaController {
 
             Validator.validarPrecio(precio, "Precio mensual");
 
+            // Verificar el campo maxReservas si es null
+            if (maxReservasTxt == null || maxReservasTxt.isBlank()) {
+                vista.mostrarError("El maximo de reservas no puede estar vacio ");
+                return false;
+            }
             // Conversion del parametro maxReservas
+
             try {
                 maxReservas = Integer.parseInt(maxReservasTxt);
             } catch (NumberFormatException e) {
