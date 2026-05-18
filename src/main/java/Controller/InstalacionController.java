@@ -36,11 +36,13 @@ public class InstalacionController {
      *
      * @param nombre     el nombre de la instalacion
      * @param tipo       valor Enum que indica el tipo de instalacion
-     * @param capacidad  la capacidad o aforo de una instalacion
+     * @param txtCapacidad  la capacidad o aforo de una instalacion
      * @param precioHora el precio calculado que tiene una instalacion
      * @return "true" si se logra insertar, o "false" si no se puede
      */
-    public boolean insertar(String nombre, TipoInstalacion tipo, Integer capacidad, BigDecimal precioHora) {
+    public boolean insertar(String nombre, TipoInstalacion tipo, String txtCapacidad, String precioHora) {
+        BigDecimal precio;
+        Integer capacidad;
         // Validacion de entradas
         try {
 
@@ -50,8 +52,24 @@ public class InstalacionController {
                 throw new IllegalArgumentException("El tipo de instalación no puede estar vacío");
             }
 
+            try {
+                capacidad = Integer.parseInt(txtCapacidad);
+            } catch (NumberFormatException e) {
+                vista.mostrarError("La capacidad debe ser numerica");
+                return false;
+            }
+
             Validator.validarCapacidad(capacidad);
-            Validator.validarPrecio(precioHora, "Precio por hora");
+
+            // Validar si el precio tiene letras
+            try {
+                precio = new BigDecimal(precioHora); // Si no hay ninguna excepcion, es un precio valido
+            } catch (NumberFormatException e) {
+                vista.mostrarError("El precio debe ser numerico");
+                return false;
+            }
+
+            Validator.validarPrecio(precio, "Precio por hora");
 
         } catch (IllegalArgumentException e) {
             vista.mostrarError(e.getMessage());
@@ -60,7 +78,7 @@ public class InstalacionController {
 
         // Construccion del objeto Instalacion a partir de los parametros de entrada validos
         try {
-            Instalacion instalacion = new Instalacion(nombre, tipo, capacidad, precioHora);
+            Instalacion instalacion = new Instalacion(nombre, tipo, capacidad, precio);
             // Llamar al metodo del DAO para insertar el nuevo objeto
             instalacionDAO.insertar(instalacion);
             // Mostrar mensaje de informacion al usuario
@@ -81,13 +99,14 @@ public class InstalacionController {
      * @param idInstalacion el id de la instalacion a actualizar
      * @param nombre        el nombre actualizado
      * @param tipo          el valor Enum actualizado (indica el tipo de instalacion que es)
-     * @param capacidad     el aforo o capacidad actualizada de la instalacion
+     * @param txtCapacidad     el aforo o capacidad actualizada de la instalacion
      * @param precioHora    el precio hora calculado actualizado de la instalacion
      * @param activa        para indicar si una instalacion se encuentra activa o no, se actualiza tambien
      * @return "true" si se actualiza correctamente, o "false" si no.
      */
-    public boolean actualizar(Integer idInstalacion, String nombre, TipoInstalacion tipo, Integer capacidad, BigDecimal precioHora, boolean activa) {
-
+    public boolean actualizar(Integer idInstalacion, String nombre, TipoInstalacion tipo, String txtCapacidad, String precioHora, boolean activa) {
+        BigDecimal precio;
+        Integer capacidad;
         // Validacion de entradas
         try {
 
@@ -99,13 +118,24 @@ public class InstalacionController {
                 throw new IllegalArgumentException("El tipo de instalación no puede estar vacío");
             }
 
-            if (capacidad == null || capacidad <= 0) {
-                throw new IllegalArgumentException("La capacidad debe ser un número mayor que cero");
+            try {
+                capacidad = Integer.parseInt(txtCapacidad);
+            } catch (NumberFormatException e) {
+                vista.mostrarError("La capacidad debe ser numerica");
+                return false;
             }
 
-            if (precioHora == null || precioHora.compareTo(BigDecimal.ZERO) <= 0) {
-                throw new IllegalArgumentException("El precio por hora debe ser mayor que cero");
+            Validator.validarCapacidad(capacidad);
+
+            // Validar si el precio tiene letras
+            try {
+                precio = new BigDecimal(precioHora); // Si no hay ninguna excepcion, es un precio valido
+            } catch (NumberFormatException e) {
+                vista.mostrarError("El precio debe ser un numero valido. Ejemplo: 29.99");
+                return false;
             }
+
+            Validator.validarPrecio(precio, "Precio hora");
 
         } catch (IllegalArgumentException e) {
             // Si hay algun parametro que no cumple con los requisitos
@@ -129,7 +159,7 @@ public class InstalacionController {
             instalacion.setNombreInstalacion(nombre);
             instalacion.setTipoInstalacion(tipo);
             instalacion.setCapacidad(capacidad);
-            instalacion.setPrecioHora(precioHora);
+            instalacion.setPrecioHora(precio);
             instalacion.setActiva(activa);
 
             // Pasar objeto modificado al metodo del DAO, para actualizar el registro de la base de datos

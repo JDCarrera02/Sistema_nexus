@@ -190,6 +190,9 @@ public class Validator {
             throw new IllegalArgumentException("El campo '"+nombreCampo+"' no puede estar vacio");
         }
 
+        // Validar si contiene letras
+
+
         // Validar que sea mayor a cero
         if (precio.compareTo(BigDecimal.ZERO) <= 0){
             throw new IllegalArgumentException("El campo '"+nombreCampo+"' debe ser mayor que cero");
@@ -204,6 +207,7 @@ public class Validator {
         if (precio.scale() > 2){
             throw new IllegalArgumentException("El campo '"+nombreCampo+"' solo admite hasta 2 decimales");
         }
+
     }
 
     /**

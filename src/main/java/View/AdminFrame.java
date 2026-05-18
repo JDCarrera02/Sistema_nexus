@@ -1385,15 +1385,14 @@ public class AdminFrame extends JFrame implements VistaCliente {
             if (esNueva) {
                 exito = instalacionController.insertar(
                         txtNombre.getText().trim(), tipo,
-                        parsearEntero(txtCapacidad.getText().trim()),
-                        parsearDecimal(txtPrecio.getText().trim())
-                );
+                        txtCapacidad.getText().trim(),
+                        txtPrecio.getText().trim());
             } else {
                 exito = instalacionController.actualizar(
                         instalacion.getIdInstalacion(),
                         txtNombre.getText().trim(), tipo,
-                        parsearEntero(txtCapacidad.getText().trim()),
-                        parsearDecimal(txtPrecio.getText().trim()),
+                        txtCapacidad.getText().trim(),
+                        txtPrecio.getText().trim(),
                         chkActiva.isSelected()
                 );
             }
@@ -1614,26 +1613,6 @@ public class AdminFrame extends JFrame implements VistaCliente {
                     r.getFechaReserva(), r.getHoraInicio(), r.getHoraFin(),
                     r.getPrecio() + " €", r.getEstado()
             }));
-    }
-
-    // =========================================================
-    // MÉTODOS AUXILIARES
-    // =========================================================
-
-    private Integer parsearEntero(String texto) {
-        try {
-            return Integer.parseInt(texto);
-        } catch (NumberFormatException e) {
-            return null;
-        }
-    }
-
-    private java.math.BigDecimal parsearDecimal(String texto) {
-        try {
-            return new java.math.BigDecimal(texto);
-        } catch (NumberFormatException e) {
-            return null;
-        }
     }
 
     private void cerrarSesion() {
