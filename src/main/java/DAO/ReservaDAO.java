@@ -5,6 +5,7 @@ import Model.Reserva;
 import Model.ReservaDetalle;
 import Model.TipoInstalacion;
 import Util.DataBaseConnection;
+import Util.GestorTransaccion;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -25,6 +26,12 @@ import java.util.List;
  * hora_fin = de tipo TIME, indica la hora de finalizacion de una reserva
  * precio = cantidad DECIMAL, calculada por el sistema, indica el precio de una reserva
  * estado = de tipo ENUM con los siguientes valores: ('CONFIRMADA', 'CANCELADA', 'COMPLETADA', indica los estados en los que puede estar una reserva
+ * <p>
+ * Utiliza GestorTransaccion para encapsular la gestión de conexiones y transacciones
+ * en las operaciones de escritura, eliminando código repetido.
+ * <p>
+ * Una reserva es un registro histórico inmutable — solo puede cambiar su estado.
+ * Los métodos actualizar() y eliminar() de la interfaz lanzan UnsupportedOperationException.
  */
 public class ReservaDAO implements DAO<Reserva> {
 
@@ -157,24 +164,22 @@ public class ReservaDAO implements DAO<Reserva> {
         String sql = "INSERT INTO reservas (dni_cliente, id_instalacion, fecha_reserva, hora_inicio, hora_fin, precio, estado) " +
                 "VALUES(?, ?, ?, ?, ?, ?, ?)";
 
-        // Crear e inicializar variable de conexion
-        Connection connection = null;
-
-        // Establecer conexion y comenzar transaccion
-        try {
-            connection = DataBaseConnection.getConnection();
-            connection.setAutoCommit(false);
+        // Comenzar transaccion
+        GestorTransaccion.ejecutar(conexion -> {
 
             // Verificar si hay algun solapamiento de reserva
-            if (hayConflicto(reserva.getIdInstalacion(), reserva.getFechaReserva(), reserva.getHoraInicio(), reserva.getHoraFin(), connection)) {
+            if (hayConflicto(reserva.getIdInstalacion(), reserva.getFechaReserva(), reserva.getHoraInicio(), reserva.getHoraFin(), conexion)) {
                 throw new SQLException("La instalacion ya tiene una reserva confirmada en ese horario.");
             }
 
             // Calcular precio
-            BigDecimal precio = calcularPrecio(reserva.getIdInstalacion(), reserva.getHoraInicio(), reserva.getHoraFin(), connection);
+            BigDecimal precio = calcularPrecio(reserva.getIdInstalacion(),
+                    reserva.getHoraInicio(),
+                    reserva.getHoraFin(),
+                    conexion);
 
             // Crear PreparedStatement
-            try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            try (PreparedStatement ps = conexion.prepareStatement(sql)) {
                 // Configuracion del prepareStatement
                 ps.setString(1, reserva.getDniCliente());
                 ps.setInt(2, reserva.getIdInstalacion());
@@ -186,18 +191,8 @@ public class ReservaDAO implements DAO<Reserva> {
 
                 // Ejecutar consulta
                 ps.executeUpdate();
-                // Efectuar cambios en la base de datos
-                connection.commit();
             }
-        } catch (SQLException e) {
-            if (connection != null) connection.rollback();
-            throw e;
-        } finally {
-            if (connection != null) {
-                connection.setAutoCommit(true);
-                connection.close();
-            }
-        }
+        });
     }
 
     @Override
@@ -216,33 +211,20 @@ public class ReservaDAO implements DAO<Reserva> {
      * @throws SQLException si hay algun error con la base de datos
      */
     public void actualizarEstado(Integer idReserva, EstadoReserva nuevoEstado) throws SQLException {
-
+        // Preparar SQL para actualizar
         String sql = "UPDATE reservas SET estado = ? WHERE id_reserva = ?";
 
-        Connection connection = null;
-
-        try {
-            connection = DataBaseConnection.getConnection();
-            connection.setAutoCommit(false); // Iniciar transaccion
-
-            try (PreparedStatement ps = connection.prepareStatement(sql)) {
+        // Comenzar transaccion
+        GestorTransaccion.ejecutar(conexion -> {
+            // Crear PreparedStatement
+            try (PreparedStatement ps = conexion.prepareStatement(sql)) {
+                // Configurar prepareStatement
                 ps.setString(1, nuevoEstado.name());
                 ps.setInt(2, idReserva);
 
-                ps.executeUpdate();
-                connection.commit();
-
+                ps.executeUpdate(); // Ejecutar consulta
             }
-        } catch (SQLException e) {
-            if (connection != null) connection.rollback();
-            throw e;
-        } finally {
-
-            if (connection != null) {
-                connection.setAutoCommit(true);
-                connection.close();
-            }
-        }
+        });
     }
 
     @Override
@@ -446,11 +428,12 @@ public class ReservaDAO implements DAO<Reserva> {
 
     /**
      * Metodo para buscar reservas a partir del criterio de busqueda del cliente, se filtraran resultados a partir del nombre de una instalacion
+     *
      * @param dniCliente el dni del cliente Socio correspondiente
-     * @param termino el nombre de la instalacion
+     * @param termino    el nombre de la instalacion
      * @throws SQLException si hay algun error con la base de datos
-     * */
-    public List<ReservaDetalle> buscarDetallesPorInstalacion(String dniCliente, String termino)throws SQLException{
+     */
+    public List<ReservaDetalle> buscarDetallesPorInstalacion(String dniCliente, String termino) throws SQLException {
         // Preparar SQL para consulta
         String sql =
                 "SELECT r.id_reserva, i.nombre_instalacion, " +
@@ -462,22 +445,22 @@ public class ReservaDAO implements DAO<Reserva> {
                         "AND i.nombre_instalacion LIKE ? " +
                         "ORDER BY r.fecha_reserva DESC, r.hora_inicio";
         // Preparar lista de retorno
-        List<ReservaDetalle>detalles = new ArrayList<>();
+        List<ReservaDetalle> detalles = new ArrayList<>();
 
         // Configurar Like de la consulta
-        String like = "%"+termino+"%";
+        String like = "%" + termino + "%";
 
         // Establecer conexion y crear PreparedStatement
         try (Connection conexion = DataBaseConnection.getConnection();
              PreparedStatement ps = conexion.prepareStatement(sql)
-        ){
+        ) {
             // Configurar prepareStatement
             ps.setString(1, dniCliente);
             ps.setString(2, like);
 
             // Crear resultSet y ejecutar consulta
-            try (ResultSet rs = ps.executeQuery()){
-                while (rs.next()){
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
                     detalles.add(construirReservaDetalle(rs));
                 }
             }
@@ -488,15 +471,16 @@ public class ReservaDAO implements DAO<Reserva> {
 
     /**
      * Metodo para listar todas las reservas con informacion enriquecida, a partir de JOIN con instalaciones y clientes.
+     *
      * @return la lista con la informacion enriquecida
      * @throws SQLException si hay algun error con la base de datos
-     * */
-    public List<ReservaDetalle>listarTodosDetalles()throws SQLException{
+     */
+    public List<ReservaDetalle> listarTodosDetalles() throws SQLException {
         // Preparar sql para consulta
-        String sql = "SELECT r.id_reserva, i.nombre_instalacion, i.tipo_instalacion, "+
-                "r.fecha_reserva, r.hora_inicio, r.hora_fin, r.precio, r.estado, r.dni_cliente "+
-                "FROM reservas r "+
-                "JOIN instalaciones i ON r.id_instalacion = i.id_instalacion "+
+        String sql = "SELECT r.id_reserva, i.nombre_instalacion, i.tipo_instalacion, " +
+                "r.fecha_reserva, r.hora_inicio, r.hora_fin, r.precio, r.estado, r.dni_cliente " +
+                "FROM reservas r " +
+                "JOIN instalaciones i ON r.id_instalacion = i.id_instalacion " +
                 "ORDER BY r.fecha_reserva DESC, r.hora_inicio";
 
         // Crear lista de retorno
@@ -508,7 +492,7 @@ public class ReservaDAO implements DAO<Reserva> {
              ResultSet rs = ps.executeQuery();
         ) {
             // Llenado de la lista
-            while (rs.next()){
+            while (rs.next()) {
                 detalles.add(construirReservaDetalleAdmin(rs));
             }
         }
@@ -518,11 +502,12 @@ public class ReservaDAO implements DAO<Reserva> {
 
     /**
      * Metodo para buscar reservas por el dni del cliente o el nombre de la instalacion
+     *
      * @param termino el criterio de busqueda, dni del cliente o el nombre de la instalacion
      * @return la lista con los resultados encontrados
      * @throws SQLException si hay algun error con la base de datos
-     * */
-    public List<ReservaDetalle> buscarDetallesAdmin(String termino)throws SQLException{
+     */
+    public List<ReservaDetalle> buscarDetallesAdmin(String termino) throws SQLException {
         // Preparar sql para consulta
         String sql = "SELECT r.id_reserva, i.nombre_instalacion, i.tipo_instalacion, r.fecha_reserva, " +
                 "r.hora_inicio, r.hora_fin, r.precio, r.estado, " +
@@ -536,19 +521,19 @@ public class ReservaDAO implements DAO<Reserva> {
         List<ReservaDetalle> detalles = new ArrayList<>();
 
         // Configurar Like de la consulta
-        String like = "%"+termino+"%";
+        String like = "%" + termino + "%";
 
         // Establecer conexion y crear PreparedStatement
         try (Connection conexion = DataBaseConnection.getConnection();
              PreparedStatement ps = conexion.prepareStatement(sql)
-        ){
+        ) {
             // Configurar prepareStatement
-            ps.setString(1,like);
+            ps.setString(1, like);
             ps.setString(2, like);
 
             // Crear ResultSet y ejecutar consulta configurada
-            try (ResultSet rs = ps.executeQuery()){
-                while (rs.next()){
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
                     detalles.add(construirReservaDetalleAdmin(rs));
                 }
             }
@@ -559,11 +544,13 @@ public class ReservaDAO implements DAO<Reserva> {
 
     /**
      * Metodo privado para construir objeto DetalleReserva pero con los detalles para la vista del admin
+     * Incluye el DNI del cliente como campo adicional.
+     *
      * @param rs El resultSet con las reservas con el JOIN(multitabla) de datos
      * @return El objeto DetalleReserva o null si no encuentra nada
      * @throws SQLException si hay algun error con la base de datos
-     * */
-    private ReservaDetalle construirReservaDetalleAdmin(ResultSet rs) throws SQLException{
+     */
+    private ReservaDetalle construirReservaDetalleAdmin(ResultSet rs) throws SQLException {
         TipoInstalacion tipo = TipoInstalacion.valueOf(rs.getString("tipo_instalacion"));
         EstadoReserva estado = EstadoReserva.valueOf(rs.getString("estado"));
 
@@ -582,6 +569,7 @@ public class ReservaDAO implements DAO<Reserva> {
 
     /**
      * Metodo privado para construir un objeto ReservaDetalle a partir de un ResultSet de la base de datos
+     * No incluye el DNI del cliente
      *
      * @param rs el ResultSet
      * @return El objeto ReservaDetalle a partir de los resultados encontrados

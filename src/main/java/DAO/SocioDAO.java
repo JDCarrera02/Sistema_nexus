@@ -4,6 +4,7 @@ import Model.Socio;
 import Model.SocioDetalle;
 import Model.TipoMembresia;
 import Util.DataBaseConnection;
+import Util.GestorTransaccion;
 
 import java.sql.*;
 import java.time.LocalDate;
@@ -22,6 +23,12 @@ import java.util.List;
  * activo = de tipo Boolean que indica si un socio está activo o no
  * id_membresia = llave foranea de tipo Integer que referencia a Membresias
  * referido_por = llave foranea de tipo String que referencia a Socio, siguiendo la lógica, un socio puede ser referido por otro, así que, en este campo va el num_socio del que lo referencia
+ * <p>
+ * Utiliza GestorTransaccion para encapsular la gestión de conexiones y transacciones
+ * en las operaciones de escritura, eliminando código repetido.
+ * <p>
+ * El num_socio se genera automáticamente dentro de la transacción de inserción
+ * para evitar duplicados en escenarios de concurrencia.
  */
 public class SocioDAO implements DAO<Socio> {
 
@@ -62,7 +69,7 @@ public class SocioDAO implements DAO<Socio> {
      *
      * @param dni      el dni del cliente a verificar
      * @param conexion la conexion de la base de datos para consultar
-     * @return un booleano, si encuentra el cliente "true", o si no lo encuentra "false"
+     * @return true si el cliente existe, false si no
      * @throws SQLException si ocurre algun error con la base de datos
      */
     private boolean clienteExiste(String dni, Connection conexion) throws SQLException {
@@ -95,15 +102,8 @@ public class SocioDAO implements DAO<Socio> {
         // Preparar sql para insercion
         String sql = "INSERT INTO socios (num_socio, dni, fecha_alta, id_membresia, referido_por) " +
                 "VALUES (?, ?, ?, ?, ?)";
-        // Crear e inicializar variable de conexion
-        Connection conexion = null;
-
-        try {
-            // Establecer conexion
-            conexion = DataBaseConnection.getConnection();
-            // Comenzar transaccion
-            conexion.setAutoCommit(false);
-
+        // Comenzar transaccion
+        GestorTransaccion.ejecutar(conexion -> {
             // Verificacion si el cliente existe antes de insertar
             if (!clienteExiste(socio.getDni(), conexion))
                 // Si no está como cliente, se lanza excepcion con mensaje especifico
@@ -129,19 +129,8 @@ public class SocioDAO implements DAO<Socio> {
                 }
 
                 ps.executeUpdate(); // Ejecutar consulta
-                conexion.commit(); // Efectuar cambios en la base de datos
             }
-
-        } catch (SQLException e) { // En el caso de que ocurra algun error con la insercion
-            if (conexion != null) conexion.rollback(); // si la conexion no es nula, se hace rollback
-            throw e; // Lanzar excepcion
-
-        } finally {
-            if (conexion != null) {
-                conexion.setAutoCommit(true); // Salga o no bien la insercion, finalizar restaurando el autocommit de la base de datos
-                conexion.close(); // Cerrar conexion
-            }
-        }
+        });
     }
 
     /**
@@ -160,14 +149,8 @@ public class SocioDAO implements DAO<Socio> {
         // Nota: num_socio es la clave primaria, y dni es unique, no se deben modificar
         String sql = "UPDATE socios SET activo = ?, id_membresia = ?, referido_por = ? " +
                 "WHERE num_socio = ?";
-
-        // Crear e inicializar variable de conexion
-        Connection conexion = null;
-
-        try {
-            // Establecer conexion con la base de datos
-            conexion = DataBaseConnection.getConnection();
-            conexion.setAutoCommit(false); // Iniciar transaccion
+        // Comenzar transaccion
+        GestorTransaccion.ejecutar(conexion -> {
 
             try (PreparedStatement ps = conexion.prepareStatement(sql)) {
                 ps.setBoolean(1, socio.isActivo());
@@ -181,19 +164,8 @@ public class SocioDAO implements DAO<Socio> {
                 ps.setString(4, socio.getNumSocio());
 
                 ps.executeUpdate();
-                conexion.commit();
             }
-
-        } catch (SQLException e) {
-            if (conexion != null) conexion.rollback();
-            throw e;
-
-        } finally {
-            if (conexion != null) {
-                conexion.setAutoCommit(true);
-                conexion.close();
-            }
-        }
+        });
     }
 
     /**
@@ -207,35 +179,15 @@ public class SocioDAO implements DAO<Socio> {
         // Preparar sql para eliminacion
         String sql = "DELETE FROM socios WHERE num_socio = ?";
 
-        // Crear e inicializar variable de conexion
-        Connection conexion = null;
-
-        try {
-            // Establecer conexion con la base de datos
-            conexion = DataBaseConnection.getConnection();
-            // Comenzar transaccion
-            conexion.setAutoCommit(false);
-
+        // Comenzar transaccion
+        GestorTransaccion.ejecutar(conexion -> {
             // Crear PreparedStatement
             try (PreparedStatement ps = conexion.prepareStatement(sql)) {
                 // Configurar PreparedStatement
                 ps.setString(1, numSocio);
                 ps.executeUpdate(); // Ejecutar consulta
-                conexion.commit(); // Efectuar cambios en la base de datos
             }
-
-        } catch (SQLException e) {
-            // Si la conexion no es nula, pero hubo error
-            if (conexion != null) conexion.rollback(); // Revertir cambios
-            throw e; // Lanzar excepcion
-
-        } finally {
-            // Salga o no salga bien la eliminacion, se restablece el autocommit de la base de datos
-            if (conexion != null) {
-                conexion.setAutoCommit(true);
-                conexion.close(); // Cerrar conexion
-            }
-        }
+        });
     }
 
     /**
@@ -343,9 +295,10 @@ public class SocioDAO implements DAO<Socio> {
     /**
      * Metodo para devolver todos los socios con informacion enriquecida, utilizando las tablas CLIENTES y MEMBRESIAS
      * por medio de JOIN, y utilizarse para la tabla donde estarán estos registros, manipulada por el admin
+     *
      * @return La lista con los datos, o null si hay algun error o no encuentra nada.
      * @throws SQLException si hay algun error con la base de datos
-     * */
+     */
     public List<SocioDetalle> listarDetalles() throws SQLException {
         // Preparar SQL para busqueda
         String sql =
@@ -364,33 +317,20 @@ public class SocioDAO implements DAO<Socio> {
              ResultSet rs = ps.executeQuery()) {
 
             while (rs.next()) {
-                // Conversion del Enum, para mostrar una cadena de texto
-                TipoMembresia tipo = TipoMembresia.valueOf(rs.getString("tipo_membresia"));
-
-                detalles.add(new SocioDetalle(
-                        rs.getString("num_socio"),
-                        rs.getString("DNI"),
-                        rs.getString("nombre"),
-                        rs.getString("apellidos"),
-                        rs.getString("email"),
-                        rs.getString("telefono"),
-                        rs.getDate("fecha_alta").toLocalDate(),
-                        rs.getBoolean("activo"),
-                        tipo.getNombreMembresia(),
-                        rs.getString("referido_por")
-                ));
+                detalles.add(construirSocioDetalle(rs));
             }
         }
-        return detalles;
+        return detalles; // Retornar la lista con los detalles del socio
     }
 
     /**
      * Metodo especial para buscar socios por dni o nombre o apellidos
+     *
      * @param termino el parametro o criterio de busqueda
      * @return la lista de los socios encontrados a partir del parametro de entrada, o null si no encuentra nada
      * @throws SQLException si hay algun error con la base de datos
-     * */
-    public List<SocioDetalle> buscarDetalles(String termino) throws SQLException{
+     */
+    public List<SocioDetalle> buscarDetalles(String termino) throws SQLException {
         // Preparar SQL para busqueda
         String sql =
                 "SELECT s.num_socio, s.DNI, c.nombre, c.apellidos, c.email, c.telefono, s.fecha_alta, s.activo, m.nombre_membresia AS tipo_membresia, s.referido_por " +
@@ -416,23 +356,11 @@ public class SocioDAO implements DAO<Socio> {
             // Crear ResultSet y ejecutar consulta
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
-                    TipoMembresia tipo = TipoMembresia.valueOf(rs.getString("tipo_membresia"));
-                    detalles.add(new SocioDetalle(
-                            rs.getString("num_socio"),
-                            rs.getString("DNI"),
-                            rs.getString("nombre"),
-                            rs.getString("apellidos"),
-                            rs.getString("email"),
-                            rs.getString("telefono"),
-                            rs.getDate("fecha_alta").toLocalDate(),
-                            rs.getBoolean("activo"),
-                            tipo.getNombreMembresia(),
-                            rs.getString("referido_por")
-                    ));
+                    detalles.add(construirSocioDetalle(rs));
                 }
             }
         }
-        return detalles;
+        return detalles; // Retornar la lista con los detalles del socio
     }
 
     /**
@@ -451,5 +379,31 @@ public class SocioDAO implements DAO<Socio> {
         String referidoPor = rs.getString("referido_por"); // Puede ser null
 
         return new Socio(numSocio, dni, fechaAlta, activo, idMembresia, referidoPor);
+    }
+
+    /**
+     * Metodo para construir un objeto SocioDetalle a partir de un ResultSet con JOIN
+     * Convierte el tipo de membresia de String a TipoMembresia usando valueOf().
+     *
+     * @param rs el resultSet con los datos
+     * @return el objeto SocioDetalle construido
+     * @throws SQLException si ocurre algun error con al base de datos
+     */
+    private SocioDetalle construirSocioDetalle(ResultSet rs) throws SQLException {
+
+        TipoMembresia tipo = TipoMembresia.valueOf(rs.getString("tipo_membresia"));
+
+        return new SocioDetalle(
+                rs.getString("num_socio"),
+                rs.getString("dni"),
+                rs.getString("nombre"),
+                rs.getString("apellidos"),
+                rs.getString("email"),
+                rs.getString("telefono"),
+                rs.getDate("fecha_alta").toLocalDate(),
+                rs.getBoolean("activo"),
+                tipo.getNombreMembresia(),
+                rs.getString("referido_por")
+        );
     }
 }

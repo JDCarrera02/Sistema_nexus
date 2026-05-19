@@ -4,6 +4,7 @@ package DAO;
 import Model.Membresia;
 import Model.TipoMembresia;
 import Util.DataBaseConnection;
+import Util.GestorTransaccion;
 
 import java.math.BigDecimal;
 import java.sql.*;
@@ -19,6 +20,9 @@ import java.util.List;
  * precio_mensual = de tipo BigDecimal en Java, DECIMAL en la base de datos, indica el precio de lo que vale de una membresia mensualmente
  * max_reserva = de tipo Integer, indica el maximo de reservas que tiene un socio dependiendo del tipo de membresia, esto puede cambiar, pero va ligado a un tipo de membresia para poder definirlo, por defecto es cero.
  * descripcion = de tipo String, en la base de datos TEXT, indica una descripcion breve de una membresia, o anotaciones posibles de la misma, lo que se requiera poner en este campo, netamente indicativo y sirve para consulta.
+ * <p>
+ * Utiliza GestorTransaccion para encapsular la gestión de conexiones y transacciones
+ * en las operaciones de escritura, eliminando código repetido.
  **/
 public class MembresiaDAO implements DAO<Membresia> {
     /**
@@ -35,13 +39,9 @@ public class MembresiaDAO implements DAO<Membresia> {
         // Preparar sql para insercion
         String sql = "INSERT INTO membresias (nombre_membresia, precio_mensual, max_reservas, descripcion) " +
                 "VALUES (?, ?, ?, ?)";
-        // Crear e inicializar variable de conexion
-        Connection conexion = null;
+        // Comenzar transaccion
+        GestorTransaccion.ejecutar(conexion -> {
 
-        try {
-            // Establecer conexion con la base de datos
-            conexion = DataBaseConnection.getConnection();
-            conexion.setAutoCommit(false); // Iniciar transaccion
             // Crear PreparedStatement
             try (PreparedStatement ps = conexion.prepareStatement(sql)) {
                 // Configurar prepareStatement
@@ -56,20 +56,8 @@ public class MembresiaDAO implements DAO<Membresia> {
                     ps.setNull(4, Types.VARCHAR);
 
                 ps.executeUpdate(); // Ejecutar consulta
-                conexion.commit(); // Efectuar cambios en la base de datos
             }
-
-        } catch (SQLException e) {
-            if (conexion != null) conexion.rollback();
-            throw e;
-
-        } finally {
-            if (conexion != null) {
-                conexion.setAutoCommit(true);
-                conexion.close();
-            }
-        }
-
+        });
     }
 
     /**
@@ -87,14 +75,8 @@ public class MembresiaDAO implements DAO<Membresia> {
         // Preparar SQl para actualizacion
         String sql = "UPDATE membresias SET nombre_membresia = ?, precio_mensual = ?, " +
                 "max_reservas = ?, descripcion = ? WHERE id_membresia = ?";
-        // Crear e inicializar variable de conexion
-        Connection conexion = null;
-
-        try {
-            // Establecer conexion con la base de datos
-            conexion = DataBaseConnection.getConnection();
-            conexion.setAutoCommit(false); // Iniciar transaccion
-
+        // Comenzar transaccion
+        GestorTransaccion.ejecutar(conexion -> {
             // Crear PreparedStatement
             try (PreparedStatement ps = conexion.prepareStatement(sql)) {
                 // Configurar prepareStatement
@@ -112,19 +94,8 @@ public class MembresiaDAO implements DAO<Membresia> {
                 ps.setInt(5, membresia.getIdMembresia());
 
                 ps.executeUpdate(); // Ejecutar consulta
-                conexion.commit(); // Efectuar cambios en la base de datos
             }
-
-        } catch (SQLException e) {
-            if (conexion != null) conexion.rollback(); // Si hay algun error, revertir cambios
-            throw e; // Lanzar excepcion
-
-        } finally { // Salga bien o no la operacion, finalizar siempre
-            if (conexion != null) {
-                conexion.setAutoCommit(true); // Restaurar el autoCommit de la base de datos
-                conexion.close(); // Cerrar conexion
-            }
-        }
+        });
     }
 
     /**
@@ -151,36 +122,16 @@ public class MembresiaDAO implements DAO<Membresia> {
         // Preparar el sql para la eliminacion
         String sql = "DELETE FROM membresias WHERE id_membresia = ?";
 
-        // Crear e inicializar la variable de conexion
-        Connection conexion = null;
-
-        try {
-            // Establecer conexion con la base de datos
-            conexion = DataBaseConnection.getConnection();
-            // Iniciar transaccion
-            conexion.setAutoCommit(false);
+        // Comenzar transaccion
+        GestorTransaccion.ejecutar(conexion -> {
 
             // Crear PreparedStatement
             try (PreparedStatement ps = conexion.prepareStatement(sql)) {
                 // Configuracion del prepareStatement
                 ps.setInt(1, idMembresia);
                 ps.executeUpdate(); // Ejecutar consulta
-                conexion.commit(); // Efectuar cambios a la base de datos
             }
-
-        } catch (SQLException e) {
-            // Si hay algun error
-            if (conexion != null) conexion.rollback(); // Hacer rollback, revertir cambios
-            throw e; // Lanzar excepcion
-
-        } finally {
-            // Si sale todo bien, o no, finalizar siempre
-            if (conexion != null) {
-                conexion.setAutoCommit(true); // Restaurar autoCommit
-                conexion.close(); // Cerrar conexion
-            }
-        }
-
+        });
     }
 
     /**
@@ -290,8 +241,11 @@ public class MembresiaDAO implements DAO<Membresia> {
         TipoMembresia nombreMembresia = TipoMembresia.valueOf(rs.getString("nombre_membresia"));
         BigDecimal precioMensual = rs.getBigDecimal("precio_mensual");
         Integer maxReservas = rs.getInt("max_reservas");
-        // Descripcion al ser opcional, no se comprueba su contenido
-        String descripcion = (rs.getString("descripcion").isBlank() ? "No hay descripcion para esta membresia" : rs.getString("descripcion"));
+
+        // Descripcion al ser opcional, puede venir NULL de la base de datos, si lo es se almacena como NULL
+        String descripcionProv = (rs.getString("descripcion"));
+
+        String descripcion = (descripcionProv != null && !descripcionProv.isBlank() ? descripcionProv : null);
 
         // Retornar el nuevo objeto membresia
         return new Membresia(idMembresia, nombreMembresia, precioMensual, maxReservas, descripcion);
