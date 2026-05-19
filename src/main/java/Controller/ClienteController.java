@@ -3,6 +3,7 @@ package Controller;
 import DAO.ClienteDAO;
 import Model.Cliente;
 import Util.Login;
+import Util.MensajeSQL;
 import Util.Validator;
 
 import View.VistaCliente;
@@ -63,7 +64,7 @@ public class ClienteController {
 
         } catch (SQLException e) {
             Login.error("Error al insertar cliente: " + e.getMessage());
-            vista.mostrarError(gestionarErrorSQL(e)); // Mostrar mensaje de error si existe algun error con la base de datos
+            vista.mostrarError(MensajeSQL.traducir(e)); // Mostrar mensaje de error si existe algun error con la base de datos
             return false; // Hubo un error en la base de datos, no se inserta
         }
     }
@@ -124,7 +125,7 @@ public class ClienteController {
 
         } catch (SQLException e) {
             Login.error("Error al actualizar el cliente: " + e.getMessage());
-            vista.mostrarError(gestionarErrorSQL(e));
+            vista.mostrarError(MensajeSQL.traducir(e));
             return false; // No se actualiza el cliente
         }
     }
@@ -167,7 +168,7 @@ public class ClienteController {
 
         } catch (SQLException e) {
             Login.error("Error al eliminar el cliente: " + e.getMessage());
-            vista.mostrarError(gestionarErrorSQL(e)); // Si ocurre algun error con la base de datos durante el procedimiento de eliminacion, se muestra mensaje de error al usuario en la vista
+            vista.mostrarError(MensajeSQL.traducir(e)); // Si ocurre algun error con la base de datos durante el procedimiento de eliminacion, se muestra mensaje de error al usuario en la vista
             return false; // No se elimina si hay algun error con la base de datos
         }
     }
@@ -204,7 +205,8 @@ public class ClienteController {
             return cliente; // Si hay contenido, retorna el objeto con el respectivo registro encontrado en la base de datos
 
         } catch (SQLException e) {
-            vista.mostrarError(gestionarErrorSQL(e));
+            Login.error("Error al buscar cliente: "+e.getMessage());
+            vista.mostrarError(MensajeSQL.traducir(e));
             return null;
         }
     }
@@ -240,7 +242,8 @@ public class ClienteController {
             return cliente; // Si lo encuentra, retorna el objeto con el registro encontrado en la base de datos
 
         } catch (SQLException e) {
-            vista.mostrarError(gestionarErrorSQL(e));
+            Login.error("Error al buscar cliente por email: "+e.getMessage());
+            vista.mostrarError(MensajeSQL.traducir(e));
             return null;
         }
     }
@@ -258,7 +261,8 @@ public class ClienteController {
             return clienteDAO.listarTodos();
 
         } catch (SQLException e) {
-            vista.mostrarError(gestionarErrorSQL(e));
+            Login.error("Error al buscarr clientes: "+e.getMessage());
+            vista.mostrarError(MensajeSQL.traducir(e));
             return null;
         }
     }
@@ -278,28 +282,9 @@ public class ClienteController {
         try {
             return clienteDAO.buscarPorTermino(termino);
         } catch (SQLException e) {
-            Login.error("Error al buscar clientes: " + e.getMessage());
-            vista.mostrarError(gestionarErrorSQL(e));
+            Login.error("Error al buscar clientes por termino: "+termino+" ==== "+e.getMessage());
+            vista.mostrarError(MensajeSQL.traducir(e));
             return null;
         }
-    }
-
-    /**
-     * Metodo privado para traducir errores SQL a mensajes legibles para el usuario
-     *
-     * @param e La excepcion SQL
-     * @return el mensaje respectivo, correspondiente al error en ese momento
-     */
-    private String gestionarErrorSQL(SQLException e) {
-        // MySQL error codes más comunes
-        return switch (e.getErrorCode()) {
-            case 1062 -> // Duplicate entry
-                    "Ya existe un registro con esos datos únicos (DNI o email duplicado).";
-            case 1451 -> // Cannot delete — FK restriction
-                    "No se puede eliminar el cliente porque tiene registros asociados.";
-            case 1452 -> // FK constraint fails
-                    "Error de integridad: algún dato referenciado no existe.";
-            default -> "Error en la base de datos: " + e.getMessage();
-        };
     }
 }

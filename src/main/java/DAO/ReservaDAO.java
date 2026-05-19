@@ -85,10 +85,9 @@ public class ReservaDAO implements DAO<Reserva> {
 
                 BigDecimal precioHora = rs.getBigDecimal("precio_hora");
 
-                // Calculo de la duracion en minutos, y conversion a horas
-                // Si se digitan 90 minutos, se convierte a 1.5 horas
+                // Calculo de la duracion en minutos
                 long minutos = java.time.Duration.between(horaInicio, horaFin).toMinutes();
-                // Calcular precio a partir del resultado de las horas calculadas
+                // Calcular precio a partir del resultado de las horas calculadas. Convertir minutos a horas
                 BigDecimal duracion = BigDecimal.valueOf(minutos).divide(BigDecimal.valueOf(60), 2, RoundingMode.HALF_UP);
 
                 // Retorno del precio_hora calculado (redondeado)
