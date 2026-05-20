@@ -7,7 +7,7 @@ import javax.swing.*;
 import java.awt.*;
 
 public class LoginFrame extends JFrame {
-    private SesionController sesionController;
+    private final SesionController sesionController;
 
     // Componentes
     private JTextField txtUsuario;
