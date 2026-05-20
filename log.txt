@@ -8,3 +8,5 @@
 [21/05/2026] Instalacion actializada - id: 3
 [21/05/2026] Instalacion registrada correctamente: barbacoa1
 [21/05/2026] Instalacion actializada - id: 3
+[21/05/2026] Inicio de sesión como socio — DNI: 12345678A
+[21/05/2026] Inicio de sesión como cliente — DNI: 45678901D

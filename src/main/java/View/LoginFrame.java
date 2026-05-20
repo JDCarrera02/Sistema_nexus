@@ -1,6 +1,7 @@
 package View;
 
 import Controller.SesionController;
+import Util.Validator;
 
 import javax.swing.*;
 import java.awt.*;
@@ -57,6 +58,7 @@ public class LoginFrame extends JFrame {
         panel.add(lblUsuario, gbc);
 
         txtUsuario = new JTextField(15);
+        limitarCaracteres(txtUsuario, 12);
         gbc.gridx = 1;
         panel.add(txtUsuario, gbc);
 
@@ -66,6 +68,7 @@ public class LoginFrame extends JFrame {
         panel.add(lblPassword, gbc);
 
         txtPassword = new JPasswordField(15);
+        limitarCaracteres(txtPassword, Validator.MAX_EMAIL);
         gbc.gridx = 1;
         panel.add(txtPassword, gbc);
 
@@ -97,6 +100,20 @@ public class LoginFrame extends JFrame {
         btnRegistrarse.addActionListener(e -> {
             new RegistroClienteFrame().setVisible(true);
             // No cerramos el login — el usuario puede volver
+        });
+    }
+
+    // Metodo para limitar los caracteres en los campos de ingreso
+    private void limitarCaracteres(JTextField campo, int maxCaracteres) {
+        campo.setDocument(new javax.swing.text.PlainDocument() {
+            @Override
+            public void insertString(int offs, String str,
+                                     javax.swing.text.AttributeSet a)
+                    throws javax.swing.text.BadLocationException {
+                if (str == null) return;
+                if ((getLength() + str.length()) <= maxCaracteres)
+                    super.insertString(offs, str, a);
+            }
         });
     }
 
