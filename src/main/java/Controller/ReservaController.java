@@ -116,12 +116,6 @@ public class ReservaController {
                 return false;
             }
 
-            // Verificar si la instalacion se encuentra activa
-            if (!instalacion.isActiva()){
-                vista.mostrarError("La instalacion seleccionada no se encuentra activa para reservar ");
-                return false;
-            }
-
             // Construccion del objeto para insertar
             Reserva reserva = new Reserva(dniCliente, idInstalacion, fechaReserva, horaInicio, horaFin, BigDecimal.ZERO);
 
