@@ -5,6 +5,7 @@ import DAO.ReservaDAO;
 import DAO.SocioDAO;
 import Model.*;
 import Util.Login;
+import Util.MensajeSQL;
 import Util.Validator;
 import View.VistaCliente;
 
@@ -37,8 +38,13 @@ public class ReservaController {
     }
 
     /**
-     * Metodo que llama al metodo del controlador de ReservaDAO, insertar.
-     * Este metodo primero valida la antelacion de la reserva, el limite de reservas (a partir de el conteo de reservas activas de un socio) y crea reservas a partir de los parametros de entrada
+     * Valida las entradas y crea una nueva reserva.
+     * El precio se calcula automáticamente en el DAO.
+     * Flujo de validación:
+     * 1. Formato de los parámetros de entrada
+     * 2. Que el cliente sea socio activo
+     * 3. Que la fecha cumpla la antelación máxima
+     * 4. Que no haya superado el límite de reservas de su membresía
      *
      * @param dniCliente    el dni del cliente (socio) que se le asignara a la reserva
      * @param idInstalacion el id de la instalacion a reservar
@@ -109,13 +115,15 @@ public class ReservaController {
 
         } catch (SQLException e) {
             Login.error("Error al insertar reserva: " + e.getMessage());
-            vista.mostrarError(gestionarErrorSQL(e));
+            vista.mostrarError(MensajeSQL.traducir(e));
             return false;
         }
     }
 
     /**
-     * Metodo que llama al metodo del DAO ReservaDAO, actualizar, actualiza el estado de una reserva, ya que al tratarse de un historico, no es correcto modificar mas detalles, ya que se convertiría en otra reserva
+     * Verifica que la reserva existe y su estado permite el cambio,
+     * y actualiza el estado de la reserva.
+     * Una reserva completada o cancelada no puede modificarse.
      *
      * @param idReserva   el id de la reserva a actualizar
      * @param nuevoEstado el nuevo estado que tomara la reserva actual a modificar
@@ -163,7 +171,7 @@ public class ReservaController {
             return true;
         } catch (SQLException e) {
             Login.error("Error al actualizar estado de reserva: " + e.getMessage());
-            vista.mostrarError(gestionarErrorSQL(e));
+            vista.mostrarError(MensajeSQL.traducir(e));
             return false;
         }
     }
@@ -191,7 +199,7 @@ public class ReservaController {
             return reservas;
         } catch (SQLException e) {
             Login.error("Error al listar reservas por cliente: " + e.getMessage());
-            vista.mostrarError(gestionarErrorSQL(e));
+            vista.mostrarError(MensajeSQL.traducir(e));
             return null;
         }
     }
@@ -208,7 +216,7 @@ public class ReservaController {
 
         } catch (SQLException e) {
             Login.error("Error al listar reservas: " + e.getMessage());
-            vista.mostrarError(gestionarErrorSQL(e));
+            vista.mostrarError(MensajeSQL.traducir(e));
             return null;
         }
     }
@@ -222,7 +230,7 @@ public class ReservaController {
      */
     private boolean validarAntelacion(LocalDate fechaReserva) {
         LocalDate hoy = LocalDate.now(); // Variable para capturar el dia actual
-        LocalDate maxReserva = hoy.plusWeeks(2); // El max reserva es una variable de control que utiliza el metodo plusWeek(2) para añadirle dos semanas partiendo del dia actual, y manejar siempre el limite de reservas de 14 dias
+        LocalDate maxFecha = hoy.plusWeeks(2); // El max reserva es una variable de control que utiliza el metodo plusWeek(2) para añadirle dos semanas partiendo del dia actual, y manejar siempre el limite de reservas de 14 dias
 
         // Comprobar el parametro de entrada
         if (fechaReserva.isBefore(hoy)) { // Si la fecha de la reserva es anterior a la del dia actual
@@ -231,7 +239,7 @@ public class ReservaController {
         }
 
 
-        if (fechaReserva.isAfter(maxReserva)) { // Si la fecha de la reserva es posterior al limite de reserva (14 dias)
+        if (fechaReserva.isAfter(maxFecha)) { // Si la fecha de la reserva es posterior al limite de reserva (14 dias)
             vista.mostrarError("Solo se puede reservar con un maximo de 2 semanas de antelacion. "); // no es valido reservar, porque supera el limite
             return false;
         }
@@ -260,7 +268,7 @@ public class ReservaController {
 
         } catch (SQLException e) {
             Login.error("Error al listar detalles de reservas: "+e.getMessage());
-            vista.mostrarError(gestionarErrorSQL(e));
+            vista.mostrarError(MensajeSQL.traducir(e));
             return null;
         }
 
@@ -287,7 +295,7 @@ public class ReservaController {
             return detalles;
         } catch (SQLException e){
             Login.error("Error al buscar reservas por instalacion: "+e.getMessage());
-            vista.mostrarError(gestionarErrorSQL(e));
+            vista.mostrarError(MensajeSQL.traducir(e));
             return null;
         }
     }
@@ -331,7 +339,7 @@ public class ReservaController {
             return detalles;
         } catch (SQLException e){
             Login.error("Error al listar todos los detalles de reservas: "+e.getMessage());
-            vista.mostrarError(gestionarErrorSQL(e));
+            vista.mostrarError(MensajeSQL.traducir(e));
             return null;
         }
     }
@@ -359,19 +367,8 @@ public class ReservaController {
             return detalles;
         } catch (SQLException e){
             Login.error("Error al buscar reservas: "+e.getMessage());
-            vista.mostrarError(gestionarErrorSQL(e));
+            vista.mostrarError(MensajeSQL.traducir(e));
             return null;
         }
-    }
-
-    // Metodo para traducir mensajes SQL, legibles para el usuario en la vista
-    private String gestionarErrorSQL(SQLException e) {
-        return switch (e.getErrorCode()) {
-            case 1062 -> "Ya existe una reserva confirmada en esa instalación, " +
-                    "fecha y hora de inicio.";
-            case 1452 -> "Error de integridad: el cliente o instalación " +
-                    "referenciada no existe.";
-            default -> "Error en la base de datos: " + e.getMessage();
-        };
     }
 }
