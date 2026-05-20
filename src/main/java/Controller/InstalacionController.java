@@ -299,7 +299,7 @@ public class InstalacionController {
      * @param termino el criterio de busqueda
      * @return La lista con los resultados encontrados, o null si no encuentra nada o si hay algun error con la base de datos
      */
-    public List<Instalacion> buscarPornombre(String termino) {
+    public List<Instalacion> buscarPorNombre(String termino) {
         if (termino == null || termino.isBlank()) {
             return listarTodos();
         }

@@ -1257,7 +1257,7 @@ public class AdminFrame extends JFrame implements VistaCliente {
         btnBuscarInstalacion.addActionListener(e -> {
             String termino = txtBuscarInstalacion.getText().trim();
             List<Instalacion> instalaciones =
-                    instalacionController.buscarPornombre(termino);
+                    instalacionController.buscarPorNombre(termino);
             modeloInstalaciones.setRowCount(0);
             if (instalaciones != null)
                 instalaciones.forEach(i -> modeloInstalaciones.addRow(new Object[]{
