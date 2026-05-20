@@ -239,7 +239,7 @@ public class InstalacionDAO implements DAO<Instalacion> {
         String like = "%" + termino + "%";
         // Establecer conexion y crear PreparedStatement
         try (Connection conexion = DataBaseConnection.getConnection();
-             PreparedStatement ps = conexion.prepareStatement(sql);
+             PreparedStatement ps = conexion.prepareStatement(sql)
         ) {
             // Configurar prepareStatement
             ps.setString(1, like);
@@ -252,6 +252,38 @@ public class InstalacionDAO implements DAO<Instalacion> {
             }
         }
         return instalaciones;
+    }
+
+    /**
+     * Metodo para listar las instalaciones activas de un tipo concreto.
+     * Usado para poblar los ComboBox de reserva, mostrando
+     * únicamente las instalaciones disponibles en ese momento.
+     *
+     * @param tipo el TipoInstalacion a filtrar
+     * @return la lista de instalaciones activas del tipo indicado
+     * @throws SQLException si ocurre algún error con la base de datos
+     */
+    public List<Instalacion> listarActivasPorTipo(TipoInstalacion tipo)
+            throws SQLException {
+        // Preparar sql para busqueda
+        String sql = "SELECT * FROM instalaciones " +
+                "WHERE tipo_instalacion = ? AND activa = true " +
+                "ORDER BY nombre_instalacion";
+
+        // Crear e inicializar lista de retorno
+        List<Instalacion> instalaciones = new ArrayList<>();
+
+        // Establecer conexion con la base de datos y crear PreparedStatement
+        try (Connection conexion = DataBaseConnection.getConnection();
+             PreparedStatement ps = conexion.prepareStatement(sql)) {
+            // Configurar prepareStatement
+            ps.setString(1, tipo.name());
+            // Crear ResultSet y ejecutar consulta
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) instalaciones.add(construirInstalacion(rs));
+            }
+        }
+        return instalaciones; // Retornar resultados
     }
 
     /**

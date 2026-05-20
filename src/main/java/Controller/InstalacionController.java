@@ -319,4 +319,42 @@ public class InstalacionController {
             return null;
         }
     }
+
+    /**
+     * Metodo que lista las instalaciones activas de un tipo concreto, por medio del metodo del dao.
+     * Usado exclusivamente para poblar los ComboBox de reserva.
+     * Garantiza que el usuario solo ve instalaciones disponibles.
+     * @param tipo el TipoInstalacion a filtrar
+     * @return la lista de instalaciones activas, o null si hay error
+     */
+    public List<Instalacion> listarActivasPorTipo(TipoInstalacion tipo) {
+        try {
+            if (tipo == null)
+                throw new IllegalArgumentException(
+                        "El tipo de instalación no puede estar vacío"
+                );
+        } catch (IllegalArgumentException e) {
+            vista.mostrarError(e.getMessage());
+            return null;
+        }
+
+        try {
+            List<Instalacion> instalaciones =
+                    instalacionDAO.listarActivasPorTipo(tipo);
+
+            if (instalaciones.isEmpty())
+                vista.mostrarMensaje(
+                        "No hay instalaciones activas de tipo: " +
+                                tipo.getNombreInstalacion()
+                );
+
+            return instalaciones;
+
+        } catch (SQLException e) {
+            Login.error("Error al listar instalaciones activas por tipo: " +
+                    e.getMessage());
+            vista.mostrarError(MensajeSQL.traducir(e));
+            return null;
+        }
+    }
 }
