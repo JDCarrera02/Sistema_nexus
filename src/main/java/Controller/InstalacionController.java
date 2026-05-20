@@ -3,6 +3,7 @@ package Controller;
 import DAO.InstalacionDAO;
 import Model.Instalacion;
 import Model.TipoInstalacion;
+import Util.ConvertirDatos;
 import Util.Login;
 import Util.MensajeSQL;
 import Util.Validator;
@@ -54,12 +55,12 @@ public class InstalacionController {
             }
 
             // Comprobar si capacidad es numerica
-            capacidad = parsearEntero(txtCapacidad, "La capacidad");
+            capacidad = ConvertirDatos.parsearEntero(txtCapacidad, "La capacidad");
             // Validar formato
             Validator.validarCapacidad(capacidad);
 
             // Comprobar si precio es numerico decimal
-            precio = parsearDecimal(txtPrecio,"El precio por hora");
+            precio = ConvertirDatos.parsearDecimal(txtPrecio,"El precio por hora");
             // Validar formato
             Validator.validarPrecio(precio, "Precio por hora");
 
@@ -117,12 +118,12 @@ public class InstalacionController {
             }
 
             // Verificar si la capacidad es numerica
-            capacidad = parsearEntero(txtCapacidad, "La capacidad");
+            capacidad = ConvertirDatos.parsearEntero(txtCapacidad, "La capacidad");
             // Validar formato
             Validator.validarCapacidad(capacidad);
 
             // Verificar si el precio ingresado es numerico decimal
-            precio = parsearDecimal(txtPrecio, "Precio por hora");
+            precio = ConvertirDatos.parsearDecimal(txtPrecio, "Precio por hora");
             // Validar formato
             Validator.validarPrecio(precio, "Precio por hora");
 
@@ -316,50 +317,6 @@ public class InstalacionController {
             Login.error("Error al buscar instalaciones " + e.getMessage());
             vista.mostrarError(MensajeSQL.traducir(e));
             return null;
-        }
-    }
-
-    // Metodos privados para convertir tipos de datos desde la vista
-
-    /**
-     * Convierte un String a Integer.
-     * Lanza IllegalArgumentException con mensaje claro si el formato es invalido
-     *
-     * @param texto       el texto a convertir
-     * @param nombreCampo el nombre del campo para el mensaje de error
-     * @return el Integer resultante
-     */
-    private Integer parsearEntero(String texto, String nombreCampo) {
-        if (texto == null || texto.isBlank()) {
-            throw new IllegalArgumentException(nombreCampo + " | no puede estar vacio");
-        }
-
-        try {
-            return Integer.parseInt(texto);
-        } catch (NumberFormatException e) {
-            throw new IllegalArgumentException(nombreCampo + " | debe ser un numero entero. Ejemplo: 10");
-        }
-    }
-
-    /**
-     * Metodo que convierte un String a BigDecimal.
-     * Lanza IllegalArgumentException con mensaje claro si el formato es inválido.
-     *
-     * @param texto       el texto a convertir
-     * @param nombreCampo el nombre del campo para el mensaje de error
-     * @return el BigDecimal resultante
-     */
-    private BigDecimal parsearDecimal(String texto, String nombreCampo) {
-        if (texto == null || texto.isBlank())
-            throw new IllegalArgumentException(
-                    nombreCampo + " no puede estar vacío"
-            );
-        try {
-            return new BigDecimal(texto);
-        } catch (NumberFormatException e) {
-            throw new IllegalArgumentException(
-                    nombreCampo + " debe ser un número válido. Ejemplo: 12.50"
-            );
         }
     }
 }

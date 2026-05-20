@@ -3,7 +3,9 @@ package Controller;
 import DAO.MembresiaDAO;
 import Model.Membresia;
 import Model.TipoMembresia;
+import Util.ConvertirDatos;
 import Util.Login;
+import Util.MensajeSQL;
 import Util.Validator;
 import View.VistaCliente;
 
@@ -57,29 +59,17 @@ public class MembresiaController {
                 throw new IllegalArgumentException("El tipo de membresia no puede estar vacia");
             }
 
-            // Conversion del parametro precio
-            try {
-                precio = new BigDecimal(precioTxt);
-            } catch (NumberFormatException e) {
-                throw new IllegalArgumentException("El precio debe ser un numero valido. Ejemplo: 29.99");
-            }
-
+            // Verificar si el precio es valido
+            precio = ConvertirDatos.parsearDecimal(precioTxt, "El precio mensual");
+            // Validar formato
             Validator.validarPrecio(precio, "Precio mensual");
 
-            // Verificar el campo maxReservas si es null
-            if (maxReservasTxt == null || maxReservasTxt.isBlank()) {
-                vista.mostrarError("El maximo de reservas no puede estar vacio ");
-                return false;
-            }
-            // Conversion del parametro maxReservas
-
-            try {
-                maxReservas = Integer.parseInt(maxReservasTxt);
-            } catch (NumberFormatException e) {
-                throw new IllegalArgumentException("El maximo de reservas debe ser un numero entero ");
-            }
-
+            // Verificar si el max reservas ingresado es valido
+            maxReservas = ConvertirDatos.parsearEntero(maxReservasTxt, "El maximo de reservas");
+            // Validar formato
             Validator.validarMaxReservas(maxReservas);
+
+            // Validar descripcion
             Validator.validarDescripcion(descripcion);
 
         } catch (IllegalArgumentException e) {
@@ -107,7 +97,7 @@ public class MembresiaController {
             return true; // Membresia modificada exitosamente
         } catch (SQLException e) {
             Login.error("Error al actualizar membresia: " + e.getMessage());
-            vista.mostrarError(gestionarErrorSQL(e));
+            vista.mostrarError(MensajeSQL.traducir(e));
             return false; // No se puede actualizar si hay algun error con la base de datos
         }
     }
@@ -136,7 +126,7 @@ public class MembresiaController {
             return membresia; // Si la encuentra, se retorna el objeto membresia
         } catch (SQLException e) {
             Login.error("Error al buscar membresia: " + e.getMessage());
-            vista.mostrarError(gestionarErrorSQL(e));
+            vista.mostrarError(MensajeSQL.traducir(e));
             return null;
         }
     }
@@ -165,7 +155,7 @@ public class MembresiaController {
             return membresia;
         } catch (SQLException e) {
             Login.error("Error al buscar membresia por tipo: " + e.getMessage());
-            vista.mostrarError(gestionarErrorSQL(e));
+            vista.mostrarError(MensajeSQL.traducir(e));
             return null;
         }
     }
@@ -181,24 +171,8 @@ public class MembresiaController {
             return membresiaDAO.listarTodos();
         } catch (SQLException e) {
             Login.error("Error al listar membresias: " + e.getMessage());
-            vista.mostrarError(gestionarErrorSQL(e));
+            vista.mostrarError(MensajeSQL.traducir(e));
             return null;
         }
     }
-
-    /**
-     * Metodo privado para gestionar errores SQL y mostrar mensajes legibles en la vista para el usuario
-     *
-     * @param e la excepcion capturada de tipo SQLException
-     * @return el mensaje traducido para el usuario
-     */
-    private String gestionarErrorSQL(SQLException e) {
-        return switch (e.getErrorCode()) {
-            case 1451 -> "No se puede eliminar la membresía porque tiene socios asignados.";
-            case 1452 -> "Error de integridad: algún dato referenciado no existe.";
-            default -> "Error en la base de datos: " + e.getMessage();
-        };
-    }
-
-
 }
