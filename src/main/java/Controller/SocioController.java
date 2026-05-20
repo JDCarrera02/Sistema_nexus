@@ -1,12 +1,10 @@
 package Controller;
 
-import DAO.ReservaDAO;
 import DAO.SocioDAO;
-import Model.EstadoReserva;
-import Model.Reserva;
 import Model.Socio;
 import Model.SocioDetalle;
 import Util.Login;
+import Util.MensajeSQL;
 import Util.Validator;
 import View.VistaCliente;
 
@@ -24,12 +22,10 @@ public class SocioController {
 
     private final VistaCliente vista;
     private final SocioDAO socioDAO;
-    private final ReservaDAO reservaDAO;
 
     // Constructor que inicializa los objetos del controlador
     public SocioController(VistaCliente vista) {
         this.socioDAO = new SocioDAO();
-        this.reservaDAO = new ReservaDAO();
         this.vista = vista;
     }
 
@@ -84,7 +80,7 @@ public class SocioController {
 
         } catch (SQLException e) {
             Login.error("Error al dar de alta socio: " + e.getMessage());
-            vista.mostrarError(gestionarErrorSQL(e));
+            vista.mostrarError(MensajeSQL.traducir(e));
             return false; // No se puede insertar si ocurre algun error en la base de datos
         }
     }
@@ -126,7 +122,7 @@ public class SocioController {
             return true;
         } catch (SQLException e) {
             Login.error("Error al desactivar el socio: " + e.getMessage());
-            vista.mostrarError(gestionarErrorSQL(e));
+            vista.mostrarError(MensajeSQL.traducir(e));
             return false;
         }
     }
@@ -155,7 +151,7 @@ public class SocioController {
             return socio;
         } catch (SQLException e) {
             Login.error("Error al buscar socio: " + e.getMessage());
-            vista.mostrarError(gestionarErrorSQL(e));
+            vista.mostrarError(MensajeSQL.traducir(e));
             return null;
         }
     }
@@ -200,7 +196,7 @@ public class SocioController {
 
         } catch (SQLException e) {
             Login.error("Error al activar socio: " + e.getMessage());
-            vista.mostrarError(gestionarErrorSQL(e));
+            vista.mostrarError(MensajeSQL.traducir(e));
             return false; // No se puede activar un socio si hay algun error con la base de datos.
         }
     }
@@ -215,38 +211,8 @@ public class SocioController {
             return socios;
         } catch (SQLException e) {
             Login.error("Error al listar socios: " + e.getMessage());
+            vista.mostrarError(MensajeSQL.traducir(e));
             return null;
-        }
-    }
-
-    /**
-     * Metodo para verificar el limite de reservas
-     * <p>
-     * Comprueba si el socio puede hacer mas reservas segun su membresia, llama al controlador de membresia antes de insertar una reserva (o reservar en pocas palabras)
-     */
-    public boolean puedeReservar(String dni, Integer maxReservas) {
-        // El maximo de reservas es igual a 0 por defecto
-        if (maxReservas == 0) return true; // Puede reservar
-
-        try {
-            // Listar reservas activas, utilizando stream, para listar solamente las reservas activas que tiene un socio (buscar por dni)
-            List<Reserva> reservasActivas = reservaDAO.listarPorCliente(dni)
-                    .stream()
-                    .filter(r -> r.getEstado()
-                            == EstadoReserva.CONFIRMADA)
-                    .toList();
-
-            if (reservasActivas.size() >= maxReservas) {
-                vista.mostrarError("Has alcanzado el limite de " + maxReservas + " reservas activas de tu membresia.");
-                return false;
-            }
-
-            return true;
-
-        } catch (SQLException e) {
-            Login.error("Error al verificar limite de reservas: " + e.getMessage());
-            vista.mostrarError(gestionarErrorSQL(e));
-            return false;
         }
     }
 
@@ -260,7 +226,7 @@ public class SocioController {
             return socioDAO.listarDetalles();
         } catch (SQLException e) {
             Login.error("Error al listar los detalles: " + e.getMessage());
-            vista.mostrarError(gestionarErrorSQL(e));
+            vista.mostrarError(MensajeSQL.traducir(e));
             return null;
         }
     }
@@ -286,7 +252,7 @@ public class SocioController {
             return detalles;
         } catch (SQLException e) {
             Login.error("Error al buscar socios: " + e.getMessage());
-            vista.mostrarError(gestionarErrorSQL(e));
+            vista.mostrarError(MensajeSQL.traducir(e));
             return null;
         }
     }
@@ -311,21 +277,14 @@ public class SocioController {
             socio.setIdMembresia(idMembresia);
             socioDAO.actualizar(socio); // Llamar al metodo del dao
             Login.log("Membresia actualizada — socio: " + numSocio);
+            vista.mostrarMensaje("Membresia actualizada correctamente.");
             return true;
 
         } catch (SQLException e) {
             Login.error("Error al actualizar membresía del socio: " + e.getMessage());
-            vista.mostrarError(gestionarErrorSQL(e));
+            vista.mostrarError(MensajeSQL.traducir(e));
             return false;
         }
     }
 
-    private String gestionarErrorSQL(SQLException e) {
-        return switch (e.getErrorCode()) {
-            case 1062 -> "Este cliente ya está registrado como socio.";
-            case 1451 -> "No se puede eliminar el socio porque tiene registros asociados.";
-            case 1452 -> "Error de integridad: el cliente o membresía referenciada no existe.";
-            default -> "Error en la base de datos: " + e.getMessage();
-        };
-    }
 }

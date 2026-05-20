@@ -577,8 +577,10 @@ public class AdminFrame extends JFrame implements VistaCliente {
                     "¿Activar al socio " + numSocio + "?",
                     "Confirmar", JOptionPane.YES_NO_OPTION);
             if (confirmacion == JOptionPane.YES_OPTION) {
-                socioController.activar(numSocio);
-                cargarSocios();
+                boolean exito = socioController.activar(numSocio);
+                if (exito){
+                    cargarSocios();
+                }
             }
         });
 
