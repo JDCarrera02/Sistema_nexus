@@ -1,5 +1,6 @@
 package Controller;
 
+import DAO.InstalacionDAO;
 import DAO.MembresiaDAO;
 import DAO.ReservaDAO;
 import DAO.SocioDAO;
@@ -26,6 +27,7 @@ public class ReservaController {
     private final ReservaDAO reservaDAO;
     private final SocioDAO socioDAO;
     private final MembresiaDAO membresiaDAO;
+    private final InstalacionDAO instalacionDAO;
     private final VistaCliente vista;
 
     // Constructor para inicializar los objetos del controlador
@@ -33,6 +35,7 @@ public class ReservaController {
         this.reservaDAO = new ReservaDAO();
         this.socioDAO = new SocioDAO();
         this.membresiaDAO = new MembresiaDAO();
+        this.instalacionDAO = new InstalacionDAO();
         this.vista = vista;
     }
 
@@ -97,6 +100,20 @@ public class ReservaController {
             // Verificacion del limite de reservas de la membresia
             if (!verificarLimiteReservas(dniCliente, membresia.getMaxReservas())) {
                 return false; // Si el cliente correspondiente supera el limite de reservas, no puede reservar
+            }
+
+            Instalacion instalacion = instalacionDAO.buscarInstalacionPorId(idInstalacion);
+
+            // Buscar la instalacion seleccionada
+            if (instalacion == null){
+                vista.mostrarError("No se encontro la instalacion seleccionada ");
+                return false;
+            }
+
+            // Verificar si la instalacion se encuentra activa
+            if (!instalacion.isActiva()){
+                vista.mostrarError("La instalacion seleccionada no se encuentra activa para reservar ");
+                return false;
             }
 
             // Construccion del objeto para insertar

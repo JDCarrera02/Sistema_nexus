@@ -114,3 +114,7 @@
 [19/05/2026] Inicio de sesión como socio — DNI: 12345678A
 [19/05/2026] Reserva creada -- DNI: 12345678A Instalacion: 2 Fecha: 2026-05-20
 [19/05/2026] Inicio de sesión como administrador.
+[20/05/2026] Inicio de sesión como socio — DNI: 12345678A
+[20/05/2026] Inicio de sesión como administrador.
+[20/05/2026] Inicio de sesión como administrador.
+[20/05/2026] Reserva creada -- DNI: 45678901D Instalacion: 1 Fecha: 2026-05-20
