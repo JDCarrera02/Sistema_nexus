@@ -1019,7 +1019,7 @@ public class AdminFrame extends JFrame implements VistaCliente {
     // Metodo auxiliar para cargar instalaciones de un tipo en un JComboBox
     private void cargarInstalacionesEnCombo(TipoInstalacion tipo, JComboBox<String> combo, List<Instalacion>[] ref){
         combo.removeAllItems();
-        List<Instalacion> instalaciones = instalacionController.listarPorTipo(tipo);
+        List<Instalacion> instalaciones = instalacionController.listarActivasPorTipo(tipo);
         ref[0] = instalaciones;
         if (instalaciones != null)
             instalaciones.forEach(i -> combo.addItem(i.getNombreInstalacion()));

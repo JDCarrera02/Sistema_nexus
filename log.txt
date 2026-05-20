@@ -4,3 +4,7 @@
 [20/05/2026] Membresia actualizada -- Plan VIP
 [20/05/2026] Instalacion actializada - id: 2
 [21/05/2026] Instalacion actializada - id: 7
+[21/05/2026] Inicio de sesión como administrador.
+[21/05/2026] Instalacion actializada - id: 3
+[21/05/2026] Instalacion registrada correctamente: barbacoa1
+[21/05/2026] Instalacion actializada - id: 3

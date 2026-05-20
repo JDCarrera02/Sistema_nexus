@@ -301,9 +301,10 @@ public class SocioFrame extends JFrame implements VistaCliente{
         }
     }
 
+    // Solamente se cargan las instalaciones que se encuentran activas
     private void cargarInstalacionesPorTipo(TipoInstalacion tipo) {
         cmbInstalacion.removeAllItems();
-        instalacionesCargadas = instalacionController.listarPorTipo(tipo);
+        instalacionesCargadas = instalacionController.listarActivasPorTipo(tipo);
         if (instalacionesCargadas != null)
             instalacionesCargadas.forEach(i ->
                     cmbInstalacion.addItem(i.getNombreInstalacion())
