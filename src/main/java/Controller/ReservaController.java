@@ -5,6 +5,7 @@ import DAO.MembresiaDAO;
 import DAO.ReservaDAO;
 import DAO.SocioDAO;
 import Model.*;
+import Util.ConvertirDatos;
 import Util.Login;
 import Util.MensajeSQL;
 import Util.Validator;
@@ -51,12 +52,15 @@ public class ReservaController {
      *
      * @param dniCliente    el dni del cliente (socio) que se le asignara a la reserva
      * @param idInstalacion el id de la instalacion a reservar
-     * @param fechaReserva  la fecha de la reserva
-     * @param horaInicio    la hora de inicion de la reserva
-     * @param horaFin       la hora de finalizacion de la reserva
+     * @param txtFechaReserva  la fecha de la reserva
+     * @param txtHoraInicio la hora de inicio de la reserva
+     * @param txtHoraFin    la hora de finalizacion de la reserva
      * @return "true" si se inserta, o "false" si no.
      */
-    public boolean insertar(String dniCliente, Integer idInstalacion, LocalDate fechaReserva, LocalTime horaInicio, LocalTime horaFin) {
+    public boolean insertar(String dniCliente, Integer idInstalacion, String txtFechaReserva, String txtHoraInicio, String txtHoraFin) {
+        LocalDate fechaReserva;
+        LocalTime horaInicio;
+        LocalTime horaFin;
         // Validacion de entradas
         try {
             Validator.validarDni(dniCliente);
@@ -65,16 +69,13 @@ public class ReservaController {
                 throw new IllegalArgumentException("Debe seleccionar una instalacion");
             }
 
-            if (fechaReserva == null) {
-                throw new IllegalArgumentException("La fecha de reserva no puede estar vacia");
-            }
+            fechaReserva = ConvertirDatos.parsearFecha(txtFechaReserva, "La fecha de reserva");
 
-            if (horaInicio == null || horaFin == null) {
-                throw new IllegalArgumentException("Las horas de inicio y fin no pueden estar vacias");
-            }
+            horaInicio = ConvertirDatos.parsearHora(txtHoraInicio, "Hora de inicio");
+            horaFin = ConvertirDatos.parsearHora(txtHoraFin, "Hora de finalizacion");
 
             if (!horaFin.isAfter(horaInicio)) {
-                throw new IllegalArgumentException("La hora de finalizacion debe ser posterior a la horan de inicio");
+                throw new IllegalArgumentException("La hora de finalizacion debe ser posterior a la hora de inicio");
             }
 
         } catch (IllegalArgumentException e) {
@@ -111,7 +112,7 @@ public class ReservaController {
             Instalacion instalacion = instalacionDAO.buscarInstalacionPorId(idInstalacion);
 
             // Buscar la instalacion seleccionada
-            if (instalacion == null){
+            if (instalacion == null) {
                 vista.mostrarError("No se encontro la instalacion seleccionada ");
                 return false;
             }
@@ -261,14 +262,15 @@ public class ReservaController {
     /**
      * Metodo controlador para listar los detalles de las reservas filtradas por cliente
      * Llama al metodo del dao listarDetallesPorCliente() y retorna una lista
+     *
      * @param dniCliente el dni del cliente socio
      * @return la lista con los detalles filtrados por el socio correspondiente
-     * */
-    public List<ReservaDetalle> listarDetallesPorCliente(String dniCliente){
+     */
+    public List<ReservaDetalle> listarDetallesPorCliente(String dniCliente) {
         // Validar entrada
         try {
             Validator.validarDni(dniCliente);
-        } catch (IllegalArgumentException e){
+        } catch (IllegalArgumentException e) {
             vista.mostrarError(e.getMessage());
             return null;
         }
@@ -278,7 +280,7 @@ public class ReservaController {
             return reservaDAO.listarDetallesPorCliente(dniCliente);
 
         } catch (SQLException e) {
-            Login.error("Error al listar detalles de reservas: "+e.getMessage());
+            Login.error("Error al listar detalles de reservas: " + e.getMessage());
             vista.mostrarError(MensajeSQL.traducir(e));
             return null;
         }
@@ -287,12 +289,13 @@ public class ReservaController {
 
     /**
      * Metodo que filtra las reservas por criterio de busqueda (nombre instalacion)
+     *
      * @param dniCliente el dni del socio en ese momento
-     * @param termino el nombre de la instalacion
-     * */
-    public List<ReservaDetalle> buscarDetallesPorInstalacion(String dniCliente, String termino){
+     * @param termino    el nombre de la instalacion
+     */
+    public List<ReservaDetalle> buscarDetallesPorInstalacion(String dniCliente, String termino) {
 
-        if (termino == null || termino.isBlank()){ // Si el termino es null o no se especifica
+        if (termino == null || termino.isBlank()) { // Si el termino es null o no se especifica
             return listarDetallesPorCliente(dniCliente); // No se filtra
         }
 
@@ -300,12 +303,12 @@ public class ReservaController {
             List<ReservaDetalle> detalles = reservaDAO.buscarDetallesPorInstalacion(dniCliente, termino);
 
             if (detalles.isEmpty()) {
-                vista.mostrarMensaje("No se encontraron reservas con ese nombre de instalacion: "+termino);
+                vista.mostrarMensaje("No se encontraron reservas con ese nombre de instalacion: " + termino);
             }
 
             return detalles;
-        } catch (SQLException e){
-            Login.error("Error al buscar reservas por instalacion: "+e.getMessage());
+        } catch (SQLException e) {
+            Login.error("Error al buscar reservas por instalacion: " + e.getMessage());
             vista.mostrarError(MensajeSQL.traducir(e));
             return null;
         }
@@ -336,20 +339,21 @@ public class ReservaController {
 
     /**
      * Metodo controlador que llama al metodo del dao listarTodosDetalles(), para listar todos los detalles de las reservas
+     *
      * @return la lista con los resultados encontrados que devuelve el dao
-     * */
-    public List<ReservaDetalle> listarTodosDetalles(){
+     */
+    public List<ReservaDetalle> listarTodosDetalles() {
         try {
             // Cargar los detalles de las reservas
             List<ReservaDetalle> detalles = reservaDAO.listarTodosDetalles();
 
-            if (detalles.isEmpty()){
+            if (detalles.isEmpty()) {
                 vista.mostrarMensaje("No hay reservas registradas en el sistema. ");
             }
 
             return detalles;
-        } catch (SQLException e){
-            Login.error("Error al listar todos los detalles de reservas: "+e.getMessage());
+        } catch (SQLException e) {
+            Login.error("Error al listar todos los detalles de reservas: " + e.getMessage());
             vista.mostrarError(MensajeSQL.traducir(e));
             return null;
         }
@@ -357,13 +361,14 @@ public class ReservaController {
 
     /**
      * Metodo controlador que llama al metodo del dao buscarDetallesAdmin(), que lista todas las reservas de acuerdo con un termino de busqueda (nombre de la instalacion o dni del cliente)
+     *
      * @param termino el criterio de busqueda
      * @return la lista con los resultados encontrados, a partir de lo retornado del dao
-     * */
-    public List<ReservaDetalle> buscarDetallesAdmin(String termino){
+     */
+    public List<ReservaDetalle> buscarDetallesAdmin(String termino) {
 
         // Valida si el termino ingresado es null o tiene informacion vacia "Solo espacios"
-        if (termino == null || termino.isBlank()){
+        if (termino == null || termino.isBlank()) {
             return listarTodosDetalles(); // Se listan todas las reservas con informacion enriquecida
         }
 
@@ -371,13 +376,13 @@ public class ReservaController {
             // Preparar lista de retorno
             List<ReservaDetalle> detalles = reservaDAO.buscarDetallesAdmin(termino);
 
-            if (detalles.isEmpty()){
-                vista.mostrarMensaje("No se encontraron reservas con ese termino de busqueda: "+termino);
+            if (detalles.isEmpty()) {
+                vista.mostrarMensaje("No se encontraron reservas con ese termino de busqueda: " + termino);
             }
 
             return detalles;
-        } catch (SQLException e){
-            Login.error("Error al buscar reservas: "+e.getMessage());
+        } catch (SQLException e) {
+            Login.error("Error al buscar reservas: " + e.getMessage());
             vista.mostrarError(MensajeSQL.traducir(e));
             return null;
         }

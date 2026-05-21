@@ -1,22 +1,8 @@
 
-[20/05/2026] Inicio de sesión como administrador.
-[20/05/2026] Membresia actualizada -- Plan VIP
-[20/05/2026] Membresia actualizada -- Plan VIP
-[20/05/2026] Instalacion actializada - id: 2
-[21/05/2026] Instalacion actializada - id: 7
 [21/05/2026] Inicio de sesión como administrador.
-[21/05/2026] Instalacion actializada - id: 3
-[21/05/2026] Instalacion registrada correctamente: barbacoa1
-[21/05/2026] Instalacion actializada - id: 3
+[21/05/2026] Inicio de sesión como administrador.
+[21/05/2026] Inicio de sesión como administrador.
+[21/05/2026] Reserva creada -- DNI: 12345678A Instalacion: 10 Fecha: 2026-05-22
+[21/05/2026] Estado de reserva actualizado -- id: 2 nuevo estado: Completada
+[21/05/2026] Estado de reserva actualizado -- id: 3 nuevo estado: Cancelada
 [21/05/2026] Inicio de sesión como socio — DNI: 12345678A
-[21/05/2026] Inicio de sesión como cliente — DNI: 45678901D
-[21/05/2026] Inicio de sesión como administrador.
-[21/05/2026] Cliente registrado -- DNI: 87654321B
-[21/05/2026] Cliente registrado -- DNI: 11223344C
-[21/05/2026] Cliente actualizado -- DNI: 12345678A
-[21/05/2026] Cliente eliminado -- DNI: 87654321B
-[21/05/2026] Inicio de sesión como administrador.
-[21/05/2026] Cliente registrado -- DNI: 12345677A
-[21/05/2026] Inicio de sesión como administrador.
-[21/05/2026] Instalacion registrada correctamente: Pista Pádel 3
-[21/05/2026] Instalacion actializada - id: 3

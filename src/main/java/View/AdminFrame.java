@@ -990,11 +990,10 @@ public class AdminFrame extends JFrame implements VistaCliente {
                     return;
                 }
 
-                LocalDate fecha  = LocalDate.parse(txtFecha.getText().trim());
-                LocalTime inicio = LocalTime.parse(txtHoraInicio.getText().trim());
-                LocalTime fin    = LocalTime.parse(txtHoraFin.getText().trim());
-                Integer idInstalacion =
-                        instalacionesRef[0].get(indice).getIdInstalacion();
+                String fecha  = txtFecha.getText().trim();
+                String inicio = txtHoraInicio.getText().trim();
+                String fin = txtHoraFin.getText().trim();
+                Integer idInstalacion = instalacionesRef[0].get(indice).getIdInstalacion();
 
                 boolean exito = reservaController.insertar(
                         dniSocio, idInstalacion, fecha, inicio, fin

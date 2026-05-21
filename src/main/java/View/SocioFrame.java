@@ -354,10 +354,10 @@ public class SocioFrame extends JFrame implements VistaCliente{
             }
 
             Instalacion instalacion = instalacionesCargadas.get(indice);
-            LocalDate fecha  = LocalDate.parse(txtFecha.getText().trim());
-            LocalTime inicio = LocalTime.parse(txtHoraInicio.getText().trim());
-            LocalTime fin    = LocalTime.parse(txtHoraFin.getText().trim());
-            String dni       = Sesion.getInstancia().getDniUsuario();
+            String fecha  = txtFecha.getText().trim();
+            String  inicio = txtHoraInicio.getText().trim();
+            String fin = txtHoraFin.getText().trim();
+            String dni = Sesion.getInstancia().getDniUsuario();
 
             reservaController.insertar(
                     dni, instalacion.getIdInstalacion(), fecha, inicio, fin
