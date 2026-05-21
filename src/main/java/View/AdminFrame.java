@@ -9,17 +9,16 @@ import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.time.LocalDate;
-import java.time.LocalTime;
 import java.time.format.DateTimeParseException;
 import java.util.List;
 
 public class AdminFrame extends JFrame implements VistaCliente {
     // Controllers
-    private ClienteController clienteController;
-    private SocioController socioController;
-    private MembresiaController membresiaController;
-    private InstalacionController instalacionController;
-    private ReservaController reservaController;
+    private final ClienteController clienteController;
+    private final SocioController socioController;
+    private final MembresiaController membresiaController;
+    private final InstalacionController instalacionController;
+    private final ReservaController reservaController;
 
     // Pestañas
     private JTabbedPane tabbedPane;

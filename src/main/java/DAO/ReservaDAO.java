@@ -488,7 +488,7 @@ public class ReservaDAO implements DAO<Reserva> {
         // Establecer conexion, crear PreparedStatement y ResultSet para ejecutar la consulta
         try (Connection conexion = DataBaseConnection.getConnection();
              PreparedStatement ps = conexion.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery();
+             ResultSet rs = ps.executeQuery()
         ) {
             // Llenado de la lista
             while (rs.next()) {
