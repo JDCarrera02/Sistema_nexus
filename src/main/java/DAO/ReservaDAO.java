@@ -80,7 +80,7 @@ public class ReservaDAO implements DAO<Reserva> {
 
             try (ResultSet rs = ps.executeQuery()) {
                 if (!rs.next()) {
-                    throw new SQLException("No existe ninguna insttalacion con id: " + idInstalacion);
+                    throw new SQLException("No existe ninguna instalacion con id: " + idInstalacion);
                 }
 
                 BigDecimal precioHora = rs.getBigDecimal("precio_hora");
