@@ -97,7 +97,7 @@ public class MembresiaController {
             return true; // Membresia modificada exitosamente
         } catch (SQLException e) {
             Login.error("Error al actualizar membresia: " + e.getMessage());
-            vista.mostrarError(MensajeSQL.traducir(e));
+            vista.mostrarError(MensajeSQL.traducir(e, "membresia"));
             return false; // No se puede actualizar si hay algun error con la base de datos
         }
     }

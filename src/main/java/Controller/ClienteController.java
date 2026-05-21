@@ -64,7 +64,7 @@ public class ClienteController {
 
         } catch (SQLException e) {
             Login.error("Error al insertar cliente: " + e.getMessage());
-            vista.mostrarError(MensajeSQL.traducir(e)); // Mostrar mensaje de error si existe algun error con la base de datos
+            vista.mostrarError(MensajeSQL.traducir(e, "DNI o email")); // Mostrar mensaje de error si existe algun error con la base de datos
             return false; // Hubo un error en la base de datos, no se inserta
         }
     }
@@ -125,7 +125,7 @@ public class ClienteController {
 
         } catch (SQLException e) {
             Login.error("Error al actualizar el cliente: " + e.getMessage());
-            vista.mostrarError(MensajeSQL.traducir(e));
+            vista.mostrarError(MensajeSQL.traducir(e, "email"));
             return false; // No se actualiza el cliente
         }
     }
@@ -168,7 +168,7 @@ public class ClienteController {
 
         } catch (SQLException e) {
             Login.error("Error al eliminar el cliente: " + e.getMessage());
-            vista.mostrarError(MensajeSQL.traducir(e)); // Si ocurre algun error con la base de datos durante el procedimiento de eliminacion, se muestra mensaje de error al usuario en la vista
+            vista.mostrarError(MensajeSQL.traducir(e, "cliente")); // Si ocurre algun error con la base de datos durante el procedimiento de eliminacion, se muestra mensaje de error al usuario en la vista
             return false; // No se elimina si hay algun error con la base de datos
         }
     }

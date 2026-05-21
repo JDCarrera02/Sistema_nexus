@@ -84,7 +84,7 @@ public class InstalacionController {
             // Registrar error en el fichero de errores
             Login.error("Error al inserttar instalacion: "+e.getMessage());
             // Si existe algun problema con la base de datos, se captura la excepcion SQL y se muestra el error despues de traducirlo con el metodo privado
-            vista.mostrarError(MensajeSQL.traducir(e));
+            vista.mostrarError(MensajeSQL.traducir(e, "nombre de instalacion"));
             return false; // No se puede añadir una instalacion si hay algun error con la base de datos
         }
     }
@@ -162,7 +162,7 @@ public class InstalacionController {
         } catch (SQLException e) {
             // Registrar error en el fichero de errores
             Login.error("Error al actualizar instalacion: "+e.getMessage());
-            vista.mostrarError(MensajeSQL.traducir(e)); // Si hay algun error con la base de datos, capturar excepcion SQL y traducirlo para mostrarlo legible al usuario en la vista
+            vista.mostrarError(MensajeSQL.traducir(e, "nombre de instalacion")); // Si hay algun error con la base de datos, capturar excepcion SQL y traducirlo para mostrarlo legible al usuario en la vista
             return false; // No se puede actualizar si hay algun error con la base de datos.
         }
     }
@@ -209,7 +209,7 @@ public class InstalacionController {
         } catch (SQLException e) {
             // Registrar error en el fichero de errores
             Login.error("Error al eliminar instalacion: "+e.getMessage());
-            vista.mostrarError(MensajeSQL.traducir(e)); // Si hay algun error con la base de datos, se captura la excepcion SQL y se muestra el error en la vista al usuario, traducido por medio del metodo privado, para que sea legible el error
+            vista.mostrarError(MensajeSQL.traducir(e, "instalacion")); // Si hay algun error con la base de datos, se captura la excepcion SQL y se muestra el error en la vista al usuario, traducido por medio del metodo privado, para que sea legible el error
             return false;
         }
     }

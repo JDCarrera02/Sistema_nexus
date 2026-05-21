@@ -11,10 +11,20 @@ public class MensajeSQL {
 
     private MensajeSQL(){}
 
-    public static String traducir(SQLException e){
+    /**
+     * Traduce un error SQL con mensaje genérico.
+     */
+    public static String traducir(SQLException e) {
+        return traducir(e, null);
+    }
+
+    public static String traducir(SQLException e, String contexto){
         return switch (e.getErrorCode()){
-            case 1062 -> "Ya existe un registro con esos datos únicos (valor duplicado).";
-            case 1451 -> "No se puede eliminar porque tiene registros asociados.";
+            case 1062 -> contexto!=null ? "Ya existe un registro con ese "+contexto+"."
+            : "Ya existe un registro con esos datos únicos.";
+            case 1451 -> contexto !=null ? "No se puede eliminar "+contexto+
+            " porque  tiene registros asociados. "
+            : "No se puede eliminar porque tiene registros asociados.";
             case 1452 -> "Error de integridad: algún dato referenciado no existe.";
             default   -> "Error en la base de datos: " + e.getMessage();
         };

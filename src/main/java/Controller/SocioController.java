@@ -80,7 +80,7 @@ public class SocioController {
 
         } catch (SQLException e) {
             Login.error("Error al dar de alta socio: " + e.getMessage());
-            vista.mostrarError(MensajeSQL.traducir(e));
+            vista.mostrarError(MensajeSQL.traducir(e, "DNI de socio"));
             return false; // No se puede insertar si ocurre algun error en la base de datos
         }
     }
@@ -122,7 +122,7 @@ public class SocioController {
             return true;
         } catch (SQLException e) {
             Login.error("Error al desactivar el socio: " + e.getMessage());
-            vista.mostrarError(MensajeSQL.traducir(e));
+            vista.mostrarError(MensajeSQL.traducir(e, "socio"));
             return false;
         }
     }
@@ -196,7 +196,7 @@ public class SocioController {
 
         } catch (SQLException e) {
             Login.error("Error al activar socio: " + e.getMessage());
-            vista.mostrarError(MensajeSQL.traducir(e));
+            vista.mostrarError(MensajeSQL.traducir(e, "socio"));
             return false; // No se puede activar un socio si hay algun error con la base de datos.
         }
     }

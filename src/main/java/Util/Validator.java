@@ -88,7 +88,9 @@ public class Validator {
         }
 
         if (!valor.matches(REGEX_NOMBRE_COMPLETO))
-            throw new IllegalArgumentException("El campo: '" + nombreCampo + "' solo admite letras, con la primera letra de cada palabra en mayuscula. Ejemplo: Francisco Javier");
+            throw new IllegalArgumentException(
+                    "El campo: '" + nombreCampo + "' debe comenzar con mayuscula. Ejemplo: Francisco Javier"
+            );
     }
 
     /**
