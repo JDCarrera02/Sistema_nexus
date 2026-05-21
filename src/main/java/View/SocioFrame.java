@@ -328,7 +328,7 @@ public class SocioFrame extends JFrame implements VistaCliente{
 
             LocalTime inicio = ConvertirDatos.parsearHora(txtHoraInicio.getText().trim(),"La hora de inicio");
 
-            LocalTime fin    = ConvertirDatos.parsearHora(txtHoraFin.getText().trim(),"La hora de finalizacion");
+            LocalTime fin = ConvertirDatos.parsearHora(txtHoraFin.getText().trim(),"La hora de finalizacion");
 
             if (!fin.isAfter(inicio)) {
                 mostrarError("La hora de fin debe ser posterior a la hora de inicio.");
@@ -344,8 +344,8 @@ public class SocioFrame extends JFrame implements VistaCliente{
 
             lblPrecioEstimado.setText(precio + " €");
 
-        } catch (DateTimeParseException e) {
-            mostrarError("Formato de hora incorrecto. Usa: HH:mm");
+        } catch (IllegalArgumentException e) {
+            mostrarError(e.getMessage());
         }
     }
 

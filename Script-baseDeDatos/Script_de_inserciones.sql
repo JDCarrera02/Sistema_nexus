@@ -25,7 +25,7 @@ INSERT INTO instalaciones (nombre_instalacion, tipo_instalacion, capacidad, prec
 ('Pista Pádel 2',   'PADEL',        4,  12.00, TRUE),
 ('Bar Principal',   'BAR',         30,   0.50, TRUE),
 ('Piscina Nexus',   'PISCINA',     50,   8.00, TRUE),
-('Barbacoa1'), 'BARBACOA', 2, 15.00, TRUE),
+('Barbacoa1','BARBACOA', 2, 15.00, TRUE),
 ('Salon de eventos1', 'SALON_EVENTOS', 80, 20.00, TRUE),
 ('Sala Fitness',    'GIMNASIO',    20,   6.00, TRUE);
  
