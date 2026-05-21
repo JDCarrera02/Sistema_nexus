@@ -23,3 +23,4 @@
 [21/05/2026] Error al actualizar el cliente: Duplicate entry 'juan.garcia@email.com' for key 'clientes.email'
 [21/05/2026] Error al actualizar el cliente: Duplicate entry 'juan.garcia@email.com' for key 'clientes.email'
 [21/05/2026] Error al inserttar instalacion: Duplicate entry 'Pista Pádel 2' for key 'instalaciones.nombre_instalacion'
+[21/05/2026] Error al insertar reserva: La instalacion ya tiene una reserva confirmada en ese horario.

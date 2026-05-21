@@ -6,3 +6,7 @@
 [21/05/2026] Estado de reserva actualizado -- id: 2 nuevo estado: Completada
 [21/05/2026] Estado de reserva actualizado -- id: 3 nuevo estado: Cancelada
 [21/05/2026] Inicio de sesión como socio — DNI: 12345678A
+[21/05/2026] Inicio de sesión como administrador.
+[21/05/2026] Inicio de sesión como socio — DNI: 12345678A
+[21/05/2026] Inicio de sesión como socio — DNI: 12345678A
+[21/05/2026] Reserva creada -- DNI: 12345678A Instalacion: 5 Fecha: 2026-05-21

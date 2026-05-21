@@ -4,20 +4,23 @@ import Controller.ClienteController;
 import Controller.InstalacionController;
 import Controller.ReservaController;
 import Model.*;
+import Util.ConvertirDatos;
 import Util.Sesion;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeParseException;
 import java.util.List;
 
 public class SocioFrame extends JFrame implements VistaCliente{
-    private ReservaController reservaController;
-    private InstalacionController instalacionController;
-    private ClienteController clienteController;
+    private final ReservaController reservaController;
+    private final InstalacionController instalacionController;
+    private final ClienteController clienteController;
     private List<ReservaDetalle>reservasCargadas;
 
     // Pestañas
@@ -29,7 +32,6 @@ public class SocioFrame extends JFrame implements VistaCliente{
     private JTable tablaReservas;
     private DefaultTableModel modeloReservas;
     private JButton btnCancelarReserva;
-    private JButton btnRefrescarReservas;
 
     // =========================================================
     // Pestaña para reservar
@@ -323,8 +325,10 @@ public class SocioFrame extends JFrame implements VistaCliente{
                 return;
             }
             Instalacion instalacion = instalacionesCargadas.get(indice);
-            LocalTime inicio = LocalTime.parse(txtHoraInicio.getText().trim());
-            LocalTime fin    = LocalTime.parse(txtHoraFin.getText().trim());
+
+            LocalTime inicio = ConvertirDatos.parsearHora(txtHoraInicio.getText().trim(),"La hora de inicio");
+
+            LocalTime fin    = ConvertirDatos.parsearHora(txtHoraFin.getText().trim(),"La hora de finalizacion");
 
             if (!fin.isAfter(inicio)) {
                 mostrarError("La hora de fin debe ser posterior a la hora de inicio.");
@@ -332,11 +336,11 @@ public class SocioFrame extends JFrame implements VistaCliente{
             }
 
             long minutos = java.time.Duration.between(inicio, fin).toMinutes();
-            java.math.BigDecimal duracion = java.math.BigDecimal.valueOf(minutos)
-                    .divide(java.math.BigDecimal.valueOf(60), 2,
-                            java.math.RoundingMode.HALF_UP);
-            java.math.BigDecimal precio =
-                    instalacion.getPrecioHora().multiply(duracion);
+
+            BigDecimal duracion = BigDecimal.valueOf(minutos)
+                    .divide(java.math.BigDecimal.valueOf(60), 2, RoundingMode.HALF_UP);
+            BigDecimal precio = instalacion.getPrecioHora().multiply(duracion)
+                    .setScale(2, RoundingMode.HALF_UP);
 
             lblPrecioEstimado.setText(precio + " €");
 
